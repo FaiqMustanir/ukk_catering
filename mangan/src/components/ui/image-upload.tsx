@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Upload, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -21,6 +21,11 @@ export function ImageUpload({
   placeholder = "Upload gambar",
 }: ImageUploadProps) {
   const [preview, setPreview] = useState<string | null>(value || null);
+  
+  useEffect(() => {
+    setPreview(value || null);
+  }, [value]);
+
   const [isDragging, setIsDragging] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 

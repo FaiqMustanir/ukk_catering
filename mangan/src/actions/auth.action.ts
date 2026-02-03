@@ -20,6 +20,17 @@ export async function registerPelanggan(data: PelangganRegisterInput) {
       return { success: false, error: "Email sudah terdaftar" };
     }
 
+    // Upload images AFTER validation passes
+    let kartuIdUrl: string | undefined;
+    if (validated.kartuId && validated.kartuId.startsWith("data:image")) {
+       kartuIdUrl = await uploadImage(validated.kartuId, "mangan/identitas");
+    }
+
+    let fotoUrl: string | undefined;
+    if (validated.foto && validated.foto.startsWith("data:image")) {
+       fotoUrl = await uploadImage(validated.foto, "mangan/profil");
+    }
+
     // Hash password
     const hashedPassword = await bcrypt.hash(validated.password, 12);
 
@@ -30,7 +41,12 @@ export async function registerPelanggan(data: PelangganRegisterInput) {
         email: validated.email,
         password: hashedPassword,
         telepon: validated.noTelepon,
-        alamat1: validated.alamat,
+        tglLahir: new Date(validated.tglLahir),
+        alamat1: validated.alamat1,
+        alamat2: validated.alamat2,
+        alamat3: validated.alamat3,
+        kartuId: kartuIdUrl,
+        foto: fotoUrl,
       },
     });
 
@@ -123,23 +139,16 @@ export async function getPelangganById(id: string) {
 export async function updatePelanggan(
   id: string,
   data: PelangganUpdateInput,
-  fotoBase64?: string,
-  kartuIdBase64?: string
+  fotoBase64?: string
 ) {
   try {
     const validated = pelangganUpdateSchema.parse(data);
     
     let fotoUrl = validated.foto;
-    let kartuIdUrl = validated.kartuId;
 
     // Upload foto if provided
     if (fotoBase64 && fotoBase64.startsWith("data:image")) {
       fotoUrl = await uploadImage(fotoBase64, "mangan/pelanggan/foto");
-    }
-
-    // Upload kartu ID if provided
-    if (kartuIdBase64 && kartuIdBase64.startsWith("data:image")) {
-      kartuIdUrl = await uploadImage(kartuIdBase64, "mangan/pelanggan/kartu");
     }
 
     await prisma.pelanggan.update({
@@ -153,7 +162,6 @@ export async function updatePelanggan(
         alamat2: validated.alamat2,
         alamat3: validated.alamat3,
         foto: fotoUrl,
-        kartuId: kartuIdUrl,
       },
     });
 

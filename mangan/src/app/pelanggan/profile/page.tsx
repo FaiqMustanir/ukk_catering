@@ -20,7 +20,6 @@ export default function ProfilePage() {
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState({ type: "", text: "" });
   const [fotoBase64, setFotoBase64] = useState<string | null>(null);
-  const [kartuIdBase64, setKartuIdBase64] = useState<string | null>(null);
 
   const {
     register,
@@ -50,10 +49,8 @@ export default function ProfilePage() {
       setValue("alamat2", result.data.alamat2 || "");
       setValue("alamat3", result.data.alamat3 || "");
       setValue("foto", result.data.foto || "");
-      setValue("kartuId", result.data.kartuId || "");
       
       if (result.data.foto) setFotoBase64(result.data.foto);
-      if (result.data.kartuId) setKartuIdBase64(result.data.kartuId);
     }
   };
 
@@ -67,8 +64,7 @@ export default function ProfilePage() {
       const result = await updatePelanggan(
         session.user.id,
         data,
-        fotoBase64 && fotoBase64.startsWith("data:image") ? fotoBase64 : undefined,
-        kartuIdBase64 && kartuIdBase64.startsWith("data:image") ? kartuIdBase64 : undefined
+        fotoBase64 && fotoBase64.startsWith("data:image") ? fotoBase64 : undefined
       );
 
       if (result.success) {
@@ -188,20 +184,6 @@ export default function ProfilePage() {
                   onChange={setFotoBase64}
                   onRemove={() => setFotoBase64(null)}
                   placeholder="Upload foto profil"
-                />
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Kartu Identitas</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ImageUpload
-                  value={kartuIdBase64}
-                  onChange={setKartuIdBase64}
-                  onRemove={() => setKartuIdBase64(null)}
-                  placeholder="Upload KTP/ID"
                 />
               </CardContent>
             </Card>

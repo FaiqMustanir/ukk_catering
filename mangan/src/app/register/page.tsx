@@ -9,6 +9,7 @@ import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ImageUpload } from "@/components/ui/image-upload";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { pelangganRegisterSchema, type PelangganRegisterInput } from "@/lib/validations";
 import { registerPelanggan } from "@/actions/auth.action";
@@ -22,6 +23,8 @@ export default function RegisterPage() {
   const {
     register,
     handleSubmit,
+    setValue,
+    watch,
     formState: { errors },
   } = useForm<PelangganRegisterInput>({
     resolver: zodResolver(pelangganRegisterSchema),
@@ -33,6 +36,7 @@ export default function RegisterPage() {
     setSuccess("");
 
     try {
+      // Data already contains base64 strings for images from setValue
       const result = await registerPelanggan(data);
 
       if (result.success) {
@@ -91,7 +95,6 @@ export default function RegisterPage() {
               </Label>
               <Input
                 id="namaPelanggan"
-                type="text"
                 placeholder="Nama Anda"
                 {...register("namaPelanggan")}
                 error={errors.namaPelanggan?.message}
@@ -128,15 +131,78 @@ export default function RegisterPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="alamat" required className="text-stone-700">
-                Alamat Lengkap
+              <Label htmlFor="tglLahir" required className="text-stone-700">
+                Tanggal Lahir
               </Label>
               <Input
-                id="alamat"
-                type="text"
+                id="tglLahir"
+                type="date"
+                {...register("tglLahir")}
+                error={errors.tglLahir?.message}
+                className="border-stone-200 focus:border-stone-400 focus:ring-stone-400"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="kartuId" required className="text-stone-700">
+                Foto KTP (Wajib)
+              </Label>
+              <ImageUpload
+                value={watch("kartuId")}
+                onChange={(base64) => setValue("kartuId", base64 || "", { shouldValidate: true })}
+                className="w-full"
+                placeholder="Upload Foto KTP"
+              />
+              {errors.kartuId && <p className="text-xs text-red-500">{errors.kartuId.message}</p>}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="foto" className="text-stone-700">
+                Foto Profil (Opsional)
+              </Label>
+              <ImageUpload
+                value={watch("foto")}
+                onChange={(base64) => setValue("foto", base64 || "")}
+                className="w-full"
+                placeholder="Upload Foto Profil"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="alamat1" required className="text-stone-700">
+                Alamat Utama
+              </Label>
+              <Input
+                id="alamat1"
                 placeholder="Alamat lengkap pengiriman"
-                {...register("alamat")}
-                error={errors.alamat?.message}
+                {...register("alamat1")}
+                error={errors.alamat1?.message}
+                className="border-stone-200 focus:border-stone-400 focus:ring-stone-400"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="alamat2" className="text-stone-700">
+                Alamat 2 (Opsional)
+              </Label>
+              <Input
+                id="alamat2"
+                placeholder="Alamat tambahan (cth: Kantor, Rumah Orang Tua)"
+                {...register("alamat2")}
+                error={errors.alamat2?.message}
+                className="border-stone-200 focus:border-stone-400 focus:ring-stone-400"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="alamat3" className="text-stone-700">
+                Alamat 3 (Opsional)
+              </Label>
+              <Input
+                id="alamat3"
+                placeholder="Alamat tambahan lainnya"
+                {...register("alamat3")}
+                error={errors.alamat3?.message}
                 className="border-stone-200 focus:border-stone-400 focus:ring-stone-400"
               />
             </div>

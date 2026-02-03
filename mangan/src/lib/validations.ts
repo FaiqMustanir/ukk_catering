@@ -33,7 +33,26 @@ export const pelangganRegisterSchema = z.object({
   namaPelanggan: z.string().min(2, "Nama minimal 2 karakter").max(100, "Nama maksimal 100 karakter"),
   email: z.string().email("Email tidak valid"),
   noTelepon: z.string().min(10, "Nomor telepon minimal 10 karakter").max(15, "Nomor telepon maksimal 15 karakter"),
-  alamat: z.string().min(10, "Alamat minimal 10 karakter").max(255, "Alamat maksimal 255 karakter"),
+  tglLahir: z.string().refine((date) => {
+    const dob = new Date(date);
+    const today = new Date();
+    
+    // Check if date is valid
+    if (isNaN(dob.getTime())) return false;
+
+    // Check minimum age 17
+    let age = today.getFullYear() - dob.getFullYear();
+    const m = today.getMonth() - dob.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
+      age--;
+    }
+    return age >= 17;
+  }, { message: "Umur minimal 17 tahun (sesuai syarat KTP)" }),
+  alamat1: z.string().min(10, "Alamat utama minimal 10 karakter").max(255, "Alamat utama maksimal 255 karakter"),
+  alamat2: z.string().max(255, "Alamat 2 maksimal 255 karakter").optional(),
+  alamat3: z.string().max(255, "Alamat 3 maksimal 255 karakter").optional(),
+  kartuId: z.string().min(1, "Foto KTP wajib diunggah"), // Base64 string for required KTP
+  foto: z.string().optional(), // Base64 string for optional Profile Pic
   password: z.string().min(6, "Password minimal 6 karakter"),
   confirmPassword: z.string().min(6, "Konfirmasi password minimal 6 karakter"),
 }).refine((data) => data.password === data.confirmPassword, {
