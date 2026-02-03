@@ -160,6 +160,21 @@ async function main() {
   }
 
   console.log('Seeding complete.')
+  
+  console.log('\n=============================================')
+  console.log('🎉 SEEDING BERHASIL! GUNAKAN AKUN BERIKUT:')
+  console.log('=============================================')
+  console.log('🔐 Password untuk semua akun: password123')
+  console.log('---------------------------------------------')
+  console.log('👤 ADMIN')
+  console.log('   Email: admin@mangan.id')
+  console.log('---------------------------------------------')
+  console.log('👤 OWNER')
+  console.log('   Email: owner@mangan.id')
+  console.log('---------------------------------------------')
+  console.log('👤 KURIR')
+  console.log('   Email: kurir@mangan.id')
+  console.log('=============================================\n')
 }
 
 main()

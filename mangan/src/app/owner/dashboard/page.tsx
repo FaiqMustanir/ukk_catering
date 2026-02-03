@@ -13,18 +13,11 @@ export default async function OwnerDashboardPage() {
     redirect("/admin/login");
   }
 
-  const [statsResult, terlarisResult, pendapatanResult] = await Promise.all([
+  const [statsResult] = await Promise.all([
     getDashboardStats(),
-    getPaketTerlaris(),
-    getPendapatanBulanan(),
   ]);
 
   const stats = statsResult.data;
-  const paketTerlaris = terlarisResult.data || [];
-  const pendapatanBulanan = pendapatanResult.data || [];
-
-  // Hitung total pendapatan tahun ini
-  const totalPendapatanTahun = pendapatanBulanan.reduce((acc, curr) => acc + curr.pendapatan, 0);
 
   return (
     <div className="space-y-8">
@@ -36,9 +29,6 @@ export default async function OwnerDashboardPage() {
         <div className="flex gap-3">
           <Button variant="outline" className="border-stone-200 text-stone-700 hover:bg-stone-50 gap-2">
             <Calendar className="h-4 w-4" /> Tahun {new Date().getFullYear()}
-          </Button>
-          <Button className="bg-stone-800 hover:bg-stone-700 text-stone-50 gap-2">
-            <Download className="h-4 w-4" /> Unduh Laporan
           </Button>
         </div>
       </div>
@@ -90,66 +80,6 @@ export default async function OwnerDashboardPage() {
             <div>
               <p className="text-sm font-medium text-stone-500">Total Paket Menu</p>
               <p className="text-2xl font-bold text-stone-900">{stats?.totalPaket || 0}</p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="grid gap-8 lg:grid-cols-3">
-        {/* Pendapatan Bulanan Chart */}
-        <Card className="lg:col-span-2 border-stone-200 shadow-sm">
-          <CardHeader>
-            <CardTitle className="font-serif text-stone-800 flex items-center gap-2">
-              <BarChart3 className="h-5 w-5" /> Pendapatan Bulanan
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {pendapatanBulanan.slice(0, 6).map((item, i) => (
-                <div key={i} className="flex flex-col gap-2">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="font-medium text-stone-700 w-20">{item.bulan}</span>
-                    <span className="text-stone-500">{formatCurrency(item.pendapatan)}</span>
-                  </div>
-                  <div className="h-2 w-full bg-stone-100 rounded-full overflow-hidden">
-                    <div 
-                      className="h-full bg-stone-600 rounded-full transition-all" 
-                      style={{ width: `${totalPendapatanTahun > 0 ? Math.max((item.pendapatan / (Math.max(...pendapatanBulanan.map(p => p.pendapatan)) || 1)) * 100, 2) : 0}%` }}
-                    ></div>
-                  </div>
-                </div>
-              ))}
-              {pendapatanBulanan.every(p => p.pendapatan === 0) && (
-                <p className="text-sm text-stone-400 text-center py-4">Belum ada data pendapatan.</p>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Top Selling Menus */}
-        <Card className="border-stone-200 shadow-sm">
-          <CardHeader>
-            <CardTitle className="font-serif text-stone-800 text-lg">Menu Terlaris</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {paketTerlaris.length === 0 ? (
-                <p className="text-sm text-stone-500 text-center py-4">Belum ada data penjualan.</p>
-              ) : (
-                paketTerlaris.map((item, i) => (
-                  <div key={i} className="flex items-center justify-between border-b border-stone-100 pb-3 last:border-0 last:pb-0">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-stone-100 text-xs font-bold text-stone-600">
-                        #{i + 1}
-                      </div>
-                      <div>
-                        <p className="font-medium text-stone-900 text-sm">{item.namaPaket}</p>
-                        <p className="text-xs text-stone-500">{item.jumlahTerjual} terjual</p>
-                      </div>
-                    </div>
-                  </div>
-                ))
-              )}
             </div>
           </CardContent>
         </Card>

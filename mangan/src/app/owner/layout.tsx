@@ -20,8 +20,6 @@ import { Button } from "@/components/ui/button";
 const menuItems = [
   { name: "Dashboard", href: "/owner/dashboard", icon: LayoutDashboard },
   { name: "Laporan Penjualan", href: "/owner/penjualan", icon: TrendingUp },
-  { name: "Paket Terlaris", href: "/owner/paket-terlaris", icon: Package },
-  { name: "Pendapatan", href: "/owner/pendapatan", icon: DollarSign },
 ];
 
 export default function OwnerLayout({
@@ -59,14 +57,14 @@ export default function OwnerLayout({
   return (
     <div className="min-h-screen bg-gray-100">
       {/* Mobile Header */}
-      <div className="sticky top-0 z-40 flex h-16 items-center justify-between bg-indigo-900 px-4 text-white lg:hidden">
+      <div className="sticky top-0 z-40 flex h-16 items-center justify-between bg-gray-900 px-4 text-white lg:hidden">
         <Link href="/" className="flex items-center gap-2">
           <ChefHat className="h-6 w-6 text-orange-500" />
           <span className="font-bold">Mangan Owner</span>
         </Link>
         <button
           onClick={() => setSidebarOpen(!sidebarOpen)}
-          className="rounded-md p-2 hover:bg-indigo-800"
+          className="rounded-md p-2 hover:bg-gray-800"
         >
           {sidebarOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
         </button>
@@ -83,11 +81,11 @@ export default function OwnerLayout({
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 w-64 transform bg-indigo-900 text-white transition-transform duration-300 lg:translate-x-0",
+          "fixed inset-y-0 left-0 z-50 w-64 transform bg-gray-900 text-white transition-transform duration-300 lg:translate-x-0",
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
-        <div className="flex h-16 items-center gap-2 border-b border-indigo-800 px-6">
+        <div className="flex h-16 items-center gap-2 border-b border-gray-800 px-6">
           <Link href="/" className="flex items-center gap-2">
             <ChefHat className="h-8 w-8 text-orange-500" />
             <span className="text-xl font-bold">Mangan</span>
@@ -95,14 +93,14 @@ export default function OwnerLayout({
         </div>
 
         <div className="p-4">
-          <div className="rounded-lg bg-indigo-800 p-4">
-            <p className="text-sm text-indigo-200">Login sebagai</p>
+          <div className="rounded-lg bg-gray-800 p-4">
+            <p className="text-sm text-gray-400">Login sebagai</p>
             <p className="font-semibold">{session?.user?.name}</p>
-            <p className="text-xs text-orange-300">Owner</p>
+            <p className="text-xs text-orange-400">Owner</p>
           </div>
         </div>
 
-        <nav className="flex-1 space-y-1 px-4">
+        <nav className="flex-1 space-y-1 px-4 overflow-y-auto pt-4">
           {menuItems.map((item) => {
             const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
             return (
@@ -114,7 +112,7 @@ export default function OwnerLayout({
                   "flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition-colors",
                   isActive
                     ? "bg-orange-600 text-white"
-                    : "text-indigo-100 hover:bg-indigo-800"
+                    : "text-gray-300 hover:bg-gray-800 hover:text-white"
                 )}
               >
                 <item.icon className="h-5 w-5" />
@@ -124,10 +122,10 @@ export default function OwnerLayout({
           })}
         </nav>
 
-        <div className="absolute bottom-0 left-0 right-0 border-t border-indigo-800 p-4">
+        <div className="absolute bottom-0 left-0 right-0 border-t border-gray-800 p-4 bg-gray-900">
           <Button
             variant="ghost"
-            className="w-full justify-start gap-3 text-indigo-100 hover:bg-indigo-800 hover:text-white"
+            className="w-full justify-start gap-3 text-gray-300 hover:bg-gray-800 hover:text-white"
             onClick={handleLogout}
           >
             <LogOut className="h-5 w-5" />

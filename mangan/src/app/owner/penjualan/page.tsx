@@ -83,28 +83,15 @@ export default function OwnerPenjualanPage() {
 
   // Filter pesanan
   const filteredPesanan = pesanan.filter((p) => {
-    const matchSearch = p.pelanggan.nama.toLowerCase().includes(search.toLowerCase());
-    const matchStatus = filterStatus ? p.status === filterStatus : true;
-
-    let matchBulan = true;
-    if (filterBulan) {
-      const pesanDate = new Date(p.tanggalPesan);
-      const pesanMonth = `${pesanDate.getFullYear()}-${String(pesanDate.getMonth() + 1).padStart(
-        2,
-        "0"
-      )}`;
-      matchBulan = pesanMonth === filterBulan;
-    }
-
-    return matchSearch && matchStatus && matchBulan;
+    return true; // No filtering
   });
 
   // Calculate totals
   const totalPendapatan = filteredPesanan
-    .filter((p) => p.status === "selesai")
+    .filter((p) => p.status === "Selesai")
     .reduce((sum, p) => sum + p.totalHarga, 0);
   const totalPesanan = filteredPesanan.length;
-  const pesananSelesai = filteredPesanan.filter((p) => p.status === "selesai").length;
+  const pesananSelesai = filteredPesanan.filter((p) => p.status === "Selesai").length;
 
   if (loading) {
     return (
@@ -144,43 +131,6 @@ export default function OwnerPenjualanPage() {
             <p className="text-2xl font-bold text-orange-600">{formatCurrency(totalPendapatan)}</p>
           </CardContent>
         </Card>
-      </div>
-
-      {/* Filters */}
-      <div className="mt-6 flex flex-col gap-4 sm:flex-row">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-          <Input
-            placeholder="Cari nama pelanggan..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-10"
-          />
-        </div>
-        <Select
-          value={filterStatus}
-          onChange={(e) => setFilterStatus(e.target.value)}
-          className="w-full sm:w-40"
-        >
-          <option value="">Semua Status</option>
-          {statusOptions.map((status) => (
-            <option key={status.value} value={status.value}>
-              {status.label}
-            </option>
-          ))}
-        </Select>
-        <Select
-          value={filterBulan}
-          onChange={(e) => setFilterBulan(e.target.value)}
-          className="w-full sm:w-48"
-        >
-          <option value="">Semua Bulan</option>
-          {monthOptions.map((month) => (
-            <option key={month.value} value={month.value}>
-              {month.label}
-            </option>
-          ))}
-        </Select>
       </div>
 
       {/* Table */}
