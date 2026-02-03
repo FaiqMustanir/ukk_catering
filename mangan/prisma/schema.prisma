@@ -1,0 +1,208 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ==========================================
+// ENUM DEFINITIONS
+// ==========================================
+
+enum UserLevel {
+  admin
+  owner
+  kurir
+}
+
+enum JenisPaket {
+  Prasmanan
+  Box
+}
+
+enum KategoriPaket {
+  Pernikahan
+  Selamatan
+  UlangTahun
+  StudiTour
+  Rapat
+}
+
+enum StatusPesanan {
+  MenungguKonfirmasi
+  SedangDiproses
+  MenungguKurir
+  Selesai
+  Dibatalkan
+}
+
+enum StatusKirim {
+  SedangDikirim
+  TibaDitujuan
+}
+
+// ==========================================
+// TABLE: users (Internal Staff)
+// ==========================================
+model User {
+  id        BigInt   @id @default(autoincrement()) @db.BigInt
+  name      String   @db.VarChar(30)
+  email     String   @unique @db.VarChar(255)
+  password  String   @db.VarChar(255)
+  level     UserLevel
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  pengirimans Pengiriman[]
+
+  @@map("users")
+}
+
+// ==========================================
+// TABLE: pelanggans (Customers)
+// ==========================================
+model Pelanggan {
+  id            BigInt   @id @default(autoincrement()) @db.BigInt
+  namaPelanggan String   @map("nama_pelanggan") @db.VarChar(100)
+  email         String   @unique @db.VarChar(255)
+  password      String   @db.VarChar(255)
+  tglLahir      DateTime? @map("tgl_lahir") @db.Date
+  telepon       String?  @db.VarChar(15)
+  alamat1       String?  @db.VarChar(255)
+  alamat2       String?  @db.VarChar(255)
+  alamat3       String?  @db.VarChar(255)
+  kartuId       String?  @map("kartu_id") @db.VarChar(255)
+  foto          String?  @db.VarChar(255)
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  pemesanans Pemesanan[]
+
+  @@map("pelanggans")
+}
+
+// ==========================================
+// TABLE: pakets (Catering Menu Catalog)
+// ==========================================
+model Paket {
+  id          BigInt        @id @default(autoincrement()) @db.BigInt
+  namaPaket   String        @map("nama_paket") @db.VarChar(50)
+  jenis       JenisPaket
+  kategori    KategoriPaket
+  jumlahPax   Int           @map("jumlah_pax")
+  hargaPaket  Int           @map("harga_paket")
+  deskripsi   String?       @db.Text
+  foto1       String?       @db.VarChar(255)
+  foto2       String?       @db.VarChar(255)
+  foto3       String?       @db.VarChar(255)
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
+
+  // Relations
+  detailPemesanans DetailPemesanan[]
+
+  @@map("pakets")
+}
+
+// ==========================================
+// TABLE: jenis_pembayarans (Payment Method Categories)
+// ==========================================
+model JenisPembayaran {
+  id                BigInt   @id @default(autoincrement()) @db.BigInt
+  metodePembayaran  String   @map("metode_pembayaran") @db.VarChar(30)
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  detailJenisPembayarans DetailJenisPembayaran[]
+  pemesanans             Pemesanan[]
+
+  @@map("jenis_pembayarans")
+}
+
+// ==========================================
+// TABLE: detail_jenis_pembayarans (Payment Account Details)
+// ==========================================
+model DetailJenisPembayaran {
+  id                BigInt          @id @default(autoincrement()) @db.BigInt
+  idJenisPembayaran BigInt          @map("id_jenis_pembayaran") @db.BigInt
+  noRek             String          @map("no_rek") @db.VarChar(25)
+  tempatBayar       String          @map("tempat_bayar") @db.VarChar(50)
+  logo              String?         @db.VarChar(255)
+  createdAt         DateTime        @default(now()) @map("created_at")
+  updatedAt         DateTime        @updatedAt @map("updated_at")
+
+  // Relations
+  jenisPembayaran JenisPembayaran @relation(fields: [idJenisPembayaran], references: [id], onDelete: Cascade)
+
+  @@map("detail_jenis_pembayarans")
+}
+
+// ==========================================
+// TABLE: pemesanans (Order Transactions - Header)
+// ==========================================
+model Pemesanan {
+  id            BigInt        @id @default(autoincrement()) @db.BigInt
+  idPelanggan   BigInt        @map("id_pelanggan") @db.BigInt
+  idJenisBayar  BigInt        @map("id_jenis_bayar") @db.BigInt
+  noResi        String        @map("no_resi") @db.VarChar(30)
+  tglPesan      DateTime      @map("tgl_pesan")
+  statusPesan   StatusPesanan @default(MenungguKonfirmasi) @map("status_pesan")
+  totalBayar    BigInt        @map("total_bayar") @db.BigInt
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime      @updatedAt @map("updated_at")
+
+  // Relations
+  pelanggan         Pelanggan         @relation(fields: [idPelanggan], references: [id], onDelete: Cascade)
+  jenisPembayaran   JenisPembayaran   @relation(fields: [idJenisBayar], references: [id])
+  detailPemesanans  DetailPemesanan[]
+  pengiriman        Pengiriman?
+
+  @@map("pemesanans")
+}
+
+// ==========================================
+// TABLE: detail_pemesanans (Order Items - Detail)
+// ==========================================
+model DetailPemesanan {
+  id           BigInt   @id @default(autoincrement()) @db.BigInt
+  idPemesanan  BigInt   @map("id_pemesanan") @db.BigInt
+  idPaket      BigInt   @map("id_paket") @db.BigInt
+  subtotal     BigInt   @db.BigInt
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  pemesanan Pemesanan @relation(fields: [idPemesanan], references: [id], onDelete: Cascade)
+  paket     Paket     @relation(fields: [idPaket], references: [id])
+
+  @@map("detail_pemesanans")
+}
+
+// ==========================================
+// TABLE: pengirimans (Delivery Tracking)
+// ==========================================
+model Pengiriman {
+  id          BigInt      @id @default(autoincrement()) @db.BigInt
+  idPesan     BigInt      @unique @map("id_pesan") @db.BigInt
+  idUser      BigInt      @map("id_user") @db.BigInt
+  tglKirim    DateTime?   @map("tgl_kirim")
+  tglTiba     DateTime?   @map("tgl_tiba")
+  statusKirim StatusKirim @default(SedangDikirim) @map("status_kirim")
+  buktiFoto   String?     @map("bukti_foto") @db.VarChar(255)
+  createdAt   DateTime    @default(now()) @map("created_at")
+  updatedAt   DateTime    @updatedAt @map("updated_at")
+
+  // Relations
+  pemesanan Pemesanan @relation(fields: [idPesan], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [idUser], references: [id])
+
+  @@map("pengirimans")
+}
