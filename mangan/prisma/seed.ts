@@ -4,6 +4,25 @@ import { hash } from 'bcryptjs'
 const prisma = new PrismaClient()
 
 async function main() {
+  console.log('Resetting database...')
+  
+  // Clean up existing data - Order matters for Foreign Keys
+  try {
+      await prisma.detailPemesanan.deleteMany()
+      await prisma.pengiriman.deleteMany()
+      await prisma.pemesanan.deleteMany()
+  } catch (e) {
+      console.log('Note: Some transaction tables were already empty or skipped.')
+  }
+
+  // Delete Core Tables
+  await prisma.paket.deleteMany()
+  await prisma.user.deleteMany()
+  // Note: Pelanggan is usually kept, but if you want full reset, uncomment:
+  // await prisma.pelanggan.deleteMany()
+
+  console.log('Database cleared. Starting seed...')
+
   const passwordHash = await hash('password123', 10)
 
   // 1. Seed Users (Staff)
@@ -29,21 +48,13 @@ async function main() {
   ]
 
   for (const user of users) {
-    const existingUser = await prisma.user.findUnique({
-      where: { email: user.email },
+    await prisma.user.create({
+      data: user,
     })
-    
-    if (!existingUser) {
-      await prisma.user.create({
-        data: user,
-      })
-      console.log(`Created user: ${user.name}`)
-    } else {
-      console.log(`User already exists: ${user.name}`)
-    }
+    console.log(`Created user: ${user.name}`)
   }
 
-  // 2. Seed Pakets (Menu) - 10 Items, No Images
+  // 2. Seed Pakets (Menu) - 10 Items, Fixed Images
   const pakets = [
     {
       namaPaket: 'Paket Pernikahan Gold',
@@ -139,24 +150,10 @@ async function main() {
 
   console.log('Seeding Pakets...')
   for (const paket of pakets) {
-    const existingPaket = await prisma.paket.findFirst({
-        where: { namaPaket: paket.namaPaket }
+    await prisma.paket.create({
+        data: paket
     })
-
-    if(!existingPaket) {
-        await prisma.paket.create({
-            data: paket
-        })
-        console.log(`Created paket: ${paket.namaPaket}`)
-    } else {
-        // Update existing to remove photo if needed, or just skip
-        // The user wants "kosongan" images.
-        await prisma.paket.update({
-             where: { id: existingPaket.id },
-             data: { foto1: null }
-        })
-        console.log(`Updated paket (removed image): ${paket.namaPaket}`)
-    }
+    console.log(`Created paket: ${paket.namaPaket}`)
   }
 
   console.log('Seeding complete.')

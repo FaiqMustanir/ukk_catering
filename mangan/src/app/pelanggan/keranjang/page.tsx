@@ -8,12 +8,63 @@ import Image from "next/image";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import { ShoppingCart, Trash2, ChefHat, Minus, Plus } from "lucide-react";
+import { ShoppingCart, Trash2, ChefHat, Minus, Plus, Copy, Check } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
-import { getAllJenisPembayaran } from "@/actions/pembayaran.action";
 import { createPemesanan } from "@/actions/pemesanan.action";
+import { getPelangganById } from "@/actions/auth.action";
+
+// Static payment methods with details
+const PAYMENT_METHODS = [
+  {
+    id: "bank_bca",
+    category: "Transfer Bank",
+    name: "Bank BCA",
+    accountNumber: "1234567890",
+    accountName: "PT Mangan Catering Indonesia",
+  },
+  {
+    id: "bank_mandiri",
+    category: "Transfer Bank",
+    name: "Bank Mandiri",
+    accountNumber: "0987654321",
+    accountName: "PT Mangan Catering Indonesia",
+  },
+  {
+    id: "bank_bni",
+    category: "Transfer Bank",
+    name: "Bank BNI",
+    accountNumber: "1122334455",
+    accountName: "PT Mangan Catering Indonesia",
+  },
+  {
+    id: "ewallet_gopay",
+    category: "E-Wallet",
+    name: "GoPay",
+    accountNumber: "081234567890",
+    accountName: "Mangan Catering",
+  },
+  {
+    id: "ewallet_ovo",
+    category: "E-Wallet",
+    name: "OVO",
+    accountNumber: "081234567890",
+    accountName: "Mangan Catering",
+  },
+  {
+    id: "ewallet_dana",
+    category: "E-Wallet",
+    name: "DANA",
+    accountNumber: "081234567890",
+    accountName: "Mangan Catering",
+  },
+  {
+    id: "cod",
+    category: "COD",
+    name: "Bayar di Tempat (COD)",
+    accountNumber: "-",
+    accountName: "Bayar tunai saat barang diterima",
+  },
+];
 
 interface CartItem {
   id: string;
@@ -24,26 +75,23 @@ interface CartItem {
   quantity: number;
 }
 
-interface JenisPembayaran {
-  id: string;
-  metodePembayaran: string;
-  detailJenisPembayarans: {
-    id: string;
-    noRek: string;
-    tempatBayar: string;
-    logo?: string | null;
-  }[];
-}
-
 export default function KeranjangPage() {
   const { data: session } = useSession();
   const router = useRouter();
   const [cart, setCart] = useState<CartItem[]>([]);
-  const [jenisPembayarans, setJenisPembayarans] = useState<JenisPembayaran[]>([]);
   const [selectedPayment, setSelectedPayment] = useState("");
-  const [alamat, setAlamat] = useState("");
+  const [copiedAccount, setCopiedAccount] = useState<string | null>(null);
+  const [pelangganAlamat, setPelangganAlamat] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState({ type: "", text: "" });
+
+  const selectedPaymentDetails = PAYMENT_METHODS.find(p => p.id === selectedPayment);
+
+  const copyToClipboard = (text: string, id: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedAccount(id);
+    setTimeout(() => setCopiedAccount(null), 2000);
+  };
 
   useEffect(() => {
     // Load cart from localStorage
@@ -52,14 +100,17 @@ export default function KeranjangPage() {
       setCart(JSON.parse(savedCart));
     }
 
-    // Load payment methods
-    loadPaymentMethods();
-  }, []);
+    // Load pelanggan alamat
+    if (session?.user?.id) {
+      loadPelangganAlamat();
+    }
+  }, [session]);
 
-  const loadPaymentMethods = async () => {
-    const result = await getAllJenisPembayaran();
+  const loadPelangganAlamat = async () => {
+    if (!session?.user?.id) return;
+    const result = await getPelangganById(session.user.id);
     if (result.success && result.data) {
-      setJenisPembayarans(result.data);
+      setPelangganAlamat(result.data.alamat1 || "");
     }
   };
 
@@ -98,8 +149,8 @@ export default function KeranjangPage() {
       return;
     }
 
-    if (!alamat.trim()) {
-      setMessage({ type: "error", text: "Isi alamat pengiriman" });
+    if (!pelangganAlamat.trim()) {
+      setMessage({ type: "error", text: "Alamat belum diisi. Silakan lengkapi profil Anda terlebih dahulu." });
       return;
     }
 
@@ -114,9 +165,13 @@ export default function KeranjangPage() {
         })
       );
 
+      // Use the static payment method name
+      const paymentMethodName = selectedPaymentDetails 
+        ? `${selectedPaymentDetails.category} - ${selectedPaymentDetails.name}`
+        : selectedPayment;
+
       const result = await createPemesanan(session.user.id, {
-        idJenisBayar: selectedPayment,
-        alamatPengiriman: alamat,
+        metodePembayaran: paymentMethodName,
         items,
       });
 
@@ -264,12 +319,14 @@ export default function KeranjangPage() {
               <CardTitle>Alamat Pengiriman</CardTitle>
             </CardHeader>
             <CardContent>
-              <Textarea
-                value={alamat}
-                onChange={(e) => setAlamat(e.target.value)}
-                placeholder="Masukkan alamat lengkap pengiriman..."
-                rows={3}
-              />
+              <p className="text-sm text-gray-700">
+                {pelangganAlamat || "Alamat belum diisi. Silakan lengkapi di halaman Profil."}
+              </p>
+              {!pelangganAlamat && (
+                <Link href="/pelanggan/profile" className="text-sm text-orange-600 hover:underline mt-2 inline-block">
+                  Lengkapi Profil
+                </Link>
+              )}
             </CardContent>
           </Card>
 
@@ -277,16 +334,60 @@ export default function KeranjangPage() {
             <CardHeader>
               <CardTitle>Metode Pembayaran</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-4">
               <Select
                 value={selectedPayment}
                 onChange={(e) => setSelectedPayment(e.target.value)}
-                options={jenisPembayarans.map((j) => ({
-                  value: j.id,
-                  label: j.metodePembayaran,
+                options={PAYMENT_METHODS.map((m) => ({
+                  value: m.id,
+                  label: `${m.category} - ${m.name}`,
                 }))}
                 placeholder="Pilih metode pembayaran"
               />
+
+              {/* Payment Details */}
+              {selectedPaymentDetails && selectedPaymentDetails.category !== "COD" && (
+                <div className="rounded-lg border border-orange-200 bg-orange-50 p-4">
+                  <p className="text-sm font-medium text-orange-800 mb-2">
+                    Detail Pembayaran:
+                  </p>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">{selectedPaymentDetails.category === "Transfer Bank" ? "Bank" : "Platform"}:</span>
+                      <span className="font-medium">{selectedPaymentDetails.name}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">{selectedPaymentDetails.category === "Transfer Bank" ? "No. Rekening" : "No. HP"}:</span>
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono font-medium">{selectedPaymentDetails.accountNumber}</span>
+                        <button
+                          type="button"
+                          onClick={() => copyToClipboard(selectedPaymentDetails.accountNumber, selectedPaymentDetails.id)}
+                          className="text-orange-600 hover:text-orange-700"
+                        >
+                          {copiedAccount === selectedPaymentDetails.id ? (
+                            <Check className="h-4 w-4 text-green-600" />
+                          ) : (
+                            <Copy className="h-4 w-4" />
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">Atas Nama:</span>
+                      <span className="font-medium">{selectedPaymentDetails.accountName}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {selectedPaymentDetails && selectedPaymentDetails.category === "COD" && (
+                <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
+                  <p className="text-sm text-blue-800">
+                    💵 Pembayaran dilakukan secara tunai saat pesanan diterima.
+                  </p>
+                </div>
+              )}
             </CardContent>
           </Card>
 
@@ -294,7 +395,7 @@ export default function KeranjangPage() {
             className="w-full" 
             onClick={handleCheckout}
             isLoading={isLoading}
-            disabled={!selectedPayment || !alamat.trim()}
+            disabled={!selectedPayment || !pelangganAlamat.trim()}
           >
             Checkout
           </Button>

@@ -3,12 +3,12 @@ import Image from "next/image";
 import { notFound } from "next/navigation";
 import { Navbar } from "@/components/layout/navbar";
 import { Footer } from "@/components/layout/footer";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ChefHat, Clock, Users, ArrowLeft, ShoppingCart } from "lucide-react";
+import { ChefHat, Clock, Users, ArrowLeft } from "lucide-react";
 import { getPaketById } from "@/actions/paket.action";
 import { formatCurrency, getKategoriLabel } from "@/lib/utils";
+import { AddToCartButton } from "@/components/menu/add-to-cart-button";
 
 interface PaketDetailPageProps {
   params: Promise<{ id: string }>;
@@ -115,13 +115,8 @@ export default async function PaketDetailPage({ params }: PaketDetailPageProps) 
                   <p className="mt-2 text-sm text-gray-600">
                     Login atau daftar untuk memesan paket catering ini
                   </p>
-                  <div className="mt-4 flex gap-4">
-                    <Link href="/login" className="flex-1">
-                      <Button className="w-full gap-2">
-                        <ShoppingCart className="h-4 w-4" />
-                        Pesan
-                      </Button>
-                    </Link>
+                  <div className="mt-4">
+                    <AddToCartButton paket={paket} />
                   </div>
                 </CardContent>
               </Card>

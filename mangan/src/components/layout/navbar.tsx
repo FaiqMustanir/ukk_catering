@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useState } from "react";
 import { Menu, X, ShoppingCart, User, ChevronDown } from "lucide-react";
 import { useSession, signOut } from "next-auth/react";
@@ -56,7 +57,13 @@ export function Navbar() {
                 )}
                 <div className="relative group">
                   <Button variant="ghost" className="gap-2 text-stone-600 hover:text-stone-900 hover:bg-stone-100">
-                    <User className="h-4 w-4" />
+                    {session.user.image ? (
+                      <div className="relative h-7 w-7 rounded-full overflow-hidden border border-stone-200">
+                        <Image src={session.user.image} alt="Profile" fill className="object-cover" />
+                      </div>
+                    ) : (
+                      <User className="h-4 w-4" />
+                    )}
                     <span className="text-sm">{session.user.name?.split(" ")[0]}</span>
                     <ChevronDown className="h-4 w-4 transition-transform group-hover:rotate-180" />
                   </Button>

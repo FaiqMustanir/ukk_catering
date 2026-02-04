@@ -56,11 +56,16 @@ export default async function HomePage() {
               </div>
           </div>
 
-          {/* Placeholder Image Area */}
-          <div className="relative aspect-[4/3] bg-stone-200 rounded-2xl border-2 border-dashed border-stone-300 flex flex-col items-center justify-center text-stone-500">
-             <ImageIcon className="w-16 h-16 mb-4 opacity-50" />
-             <p className="font-medium">Area Gambar Hero (Kosong)</p>
-             <p className="text-sm opacity-70">Silakan isi dengan foto banner utama</p>
+          {/* Real Hero Image */}
+          <div className="relative aspect-[4/3] rounded-2xl overflow-hidden shadow-2xl border-4 border-white/50">
+             <Image 
+                src="https://plus.unsplash.com/premium_photo-1686086520541-0d0a8b864bed?q=80&w=1200&auto=format&fit=crop"
+                alt="Sajian Katering Spesial"
+                fill
+                className="object-cover"
+                priority
+             />
+             <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
           </div>
         </div>
       </section>

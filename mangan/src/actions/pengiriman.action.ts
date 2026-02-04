@@ -168,20 +168,6 @@ export async function updatePengiriman(
       },
     });
 
-    // If delivered, update pemesanan status
-    if (data.statusKirim === "TibaDitujuan") {
-      const pengiriman = await prisma.pengiriman.findUnique({
-        where: { id: BigInt(id) },
-      });
-      
-      if (pengiriman) {
-        await prisma.pemesanan.update({
-          where: { id: pengiriman.idPesan },
-          data: { statusPesan: "Selesai" },
-        });
-      }
-    }
-
     revalidatePath("/kurir/pengiriman");
     revalidatePath("/pelanggan/pesanan");
     revalidatePath("/admin/pesanan");

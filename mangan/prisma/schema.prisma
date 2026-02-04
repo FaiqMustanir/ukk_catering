@@ -37,8 +37,6 @@ enum StatusPesanan {
   MenungguKonfirmasi
   SedangDiproses
   MenungguKurir
-  Selesai
-  Dibatalkan
 }
 
 enum StatusKirim {
@@ -156,6 +154,7 @@ model Pemesanan {
   tglPesan      DateTime      @map("tgl_pesan")
   statusPesan   StatusPesanan @default(MenungguKonfirmasi) @map("status_pesan")
   totalBayar    BigInt        @map("total_bayar") @db.BigInt
+  buktiTransfer String?       @map("bukti_transfer") @db.VarChar(255)
   createdAt     DateTime      @default(now()) @map("created_at")
   updatedAt     DateTime      @updatedAt @map("updated_at")
 

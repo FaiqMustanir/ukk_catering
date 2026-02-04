@@ -18,9 +18,11 @@ export async function getDashboardStats() {
       prisma.paket.count(),
       prisma.pemesanan.count({ where: { statusPesan: "MenungguKonfirmasi" } }),
       prisma.pemesanan.count({ where: { statusPesan: "SedangDiproses" } }),
-      prisma.pemesanan.count({ where: { statusPesan: "Selesai" } }),
+      // Pesanan selesai = pengiriman sudah TibaDitujuan
+      prisma.pengiriman.count({ where: { statusKirim: "TibaDitujuan" } }),
+      // Total pendapatan dari pengiriman yang sudah tiba
       prisma.pemesanan.aggregate({
-        where: { statusPesan: "Selesai" },
+        where: { pengiriman: { statusKirim: "TibaDitujuan" } },
         _sum: { totalBayar: true },
       }),
     ]);
@@ -87,7 +89,7 @@ export async function getPendapatanBulanan(year: number = new Date().getFullYear
 
     const pemesanans = await prisma.pemesanan.findMany({
       where: {
-        statusPesan: "Selesai",
+        pengiriman: { statusKirim: "TibaDitujuan" },
         tglPesan: {
           gte: startDate,
           lte: endDate,

@@ -2,16 +2,19 @@
 
 import { useEffect, useState, useTransition } from "react";
 import { getAllPemesanan, updatePemesananStatus } from "@/actions/pemesanan.action";
+import { getKurirUsers } from "@/actions/user.action";
+import { createPengiriman } from "@/actions/pengiriman.action";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Modal } from "@/components/ui/modal";
 import { useToast } from "@/components/ui/toast";
 import { formatCurrency, formatDate } from "@/lib/utils";
-import { Eye, Search } from "lucide-react";
+import { Eye, Search, Truck, ImageIcon } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import Link from "next/link";
+import Image from "next/image";
 
 // Types sesuai PDM
 type Pemesanan = {
@@ -20,6 +23,7 @@ type Pemesanan = {
   tglPesan: Date;
   statusPesan: string;
   totalBayar: number;
+  buktiTransfer?: string | null;
   pelanggan: {
     namaPelanggan: string;
     email: string;
@@ -48,17 +52,22 @@ type Pemesanan = {
   } | null;
 };
 
+type Kurir = {
+  id: string;
+  name: string;
+  email: string;
+};
+
 // Status sesuai PDM enum
 const statusOptions = [
   { value: "MenungguKonfirmasi", label: "Menunggu Konfirmasi", color: "warning" as const },
   { value: "SedangDiproses", label: "Sedang Diproses", color: "info" as const },
-  { value: "MenungguKurir", label: "Menunggu Kurir", color: "info" as const },
-  { value: "Selesai", label: "Selesai", color: "success" as const },
-  { value: "Dibatalkan", label: "Dibatalkan", color: "destructive" as const },
+  { value: "MenungguKurir", label: "Menunggu Kurir", color: "secondary" as const },
 ];
 
 export default function AdminPesananPage() {
   const [pesanan, setPesanan] = useState<Pemesanan[]>([]);
+  const [kurirs, setKurirs] = useState<Kurir[]>([]);
   const [loading, setLoading] = useState(true);
   const [detailModal, setDetailModal] = useState<{ open: boolean; pesanan: Pemesanan | null }>({
     open: false,
@@ -68,6 +77,15 @@ export default function AdminPesananPage() {
     open: false,
     pesanan: null,
     newStatus: "",
+  });
+  const [assignKurirModal, setAssignKurirModal] = useState<{ open: boolean; pesanan: Pemesanan | null; selectedKurir: string }>({
+    open: false,
+    pesanan: null,
+    selectedKurir: "",
+  });
+  const [buktiModal, setBuktiModal] = useState<{ open: boolean; imageUrl: string }>({
+    open: false,
+    imageUrl: "",
   });
   const [isPending, startTransition] = useTransition();
   const { showToast } = useToast();
@@ -79,12 +97,18 @@ export default function AdminPesananPage() {
   const fetchPesanan = async () => {
     setLoading(true);
     try {
-      const result = await getAllPemesanan();
-      if (result.success && result.data) {
-        setPesanan(result.data as Pemesanan[]);
+      const [pesananResult, kurirResult] = await Promise.all([
+        getAllPemesanan(),
+        getKurirUsers(),
+      ]);
+      if (pesananResult.success && pesananResult.data) {
+        setPesanan(pesananResult.data as Pemesanan[]);
+      }
+      if (kurirResult.success && kurirResult.data) {
+        setKurirs(kurirResult.data);
       }
     } catch (error) {
-      console.error("Error fetching pesanan:", error);
+      console.error("Error fetching data:", error);
     } finally {
       setLoading(false);
     }
@@ -100,7 +124,7 @@ export default function AdminPesananPage() {
     startTransition(async () => {
       const result = await updatePemesananStatus(
         statusModal.pesanan!.id,
-        { statusPesan: statusModal.newStatus as "MenungguKonfirmasi" | "SedangDiproses" | "MenungguKurir" | "Selesai" | "Dibatalkan" }
+        { statusPesan: statusModal.newStatus as "MenungguKonfirmasi" | "SedangDiproses" | "MenungguKurir" }
       );
       if (result.success) {
         showToast("Status pesanan berhasil diupdate", "success");
@@ -109,6 +133,24 @@ export default function AdminPesananPage() {
         showToast(result.error || "Gagal mengupdate status", "error");
       }
       setStatusModal({ open: false, pesanan: null, newStatus: "" });
+    });
+  };
+
+  const handleAssignKurir = async () => {
+    if (!assignKurirModal.pesanan || !assignKurirModal.selectedKurir) return;
+
+    startTransition(async () => {
+      const result = await createPengiriman(
+        assignKurirModal.pesanan!.id,
+        assignKurirModal.selectedKurir
+      );
+      if (result.success) {
+        showToast("Kurir berhasil ditugaskan", "success");
+        fetchPesanan();
+      } else {
+        showToast(result.error || "Gagal menugaskan kurir", "error");
+      }
+      setAssignKurirModal({ open: false, pesanan: null, selectedKurir: "" });
     });
   };
 
@@ -241,33 +283,59 @@ export default function AdminPesananPage() {
                   <p className="text-lg font-bold text-orange-600">
                     {formatCurrency(p.totalBayar)}
                   </p>
+                  {p.buktiTransfer && (
+                    <button
+                      onClick={() => setBuktiModal({ open: true, imageUrl: p.buktiTransfer! })}
+                      className="mt-1 inline-flex items-center text-xs text-green-600 hover:underline"
+                    >
+                      <ImageIcon className="mr-1 h-3 w-3" /> Lihat Bukti
+                    </button>
+                  )}
                 </div>
 
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setDetailModal({ open: true, pesanan: p })}
-                  >
-                    <Eye className="mr-1 h-4 w-4" /> Detail
-                  </Button>
-                  <Select
-                    value={p.statusPesan}
-                    onChange={(e) => {
-                      setStatusModal({
-                        open: true,
-                        pesanan: p,
-                        newStatus: e.target.value,
-                      });
-                    }}
-                    className="w-40"
-                  >
-                    {statusOptions.map((status) => (
-                      <option key={status.value} value={status.value}>
-                        {status.label}
-                      </option>
-                    ))}
-                  </Select>
+                <div className="flex flex-col gap-2">
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setDetailModal({ open: true, pesanan: p })}
+                    >
+                      <Eye className="mr-1 h-4 w-4" /> Detail
+                    </Button>
+                    <Select
+                      value={p.statusPesan}
+                      onChange={(e) => {
+                        setStatusModal({
+                          open: true,
+                          pesanan: p,
+                          newStatus: e.target.value,
+                        });
+                      }}
+                      className="w-40"
+                    >
+                      {statusOptions.map((status) => (
+                        <option key={status.value} value={status.value}>
+                          {status.label}
+                        </option>
+                      ))}
+                    </Select>
+                  </div>
+                  {/* Assign Kurir Button - tampil jika status SedangDiproses dan belum ada pengiriman */}
+                  {p.statusPesan === "SedangDiproses" && !p.pengiriman && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="border-blue-500 text-blue-600 hover:bg-blue-50"
+                      onClick={() => setAssignKurirModal({ open: true, pesanan: p, selectedKurir: "" })}
+                    >
+                      <Truck className="mr-1 h-4 w-4" /> Tugaskan Kurir
+                    </Button>
+                  )}
+                  {p.pengiriman && (
+                    <span className="text-xs text-green-600">
+                      Kurir: {p.pengiriman.user?.name || "-"}
+                    </span>
+                  )}
                 </div>
               </div>
             </CardContent>
@@ -382,6 +450,75 @@ export default function AdminPesananPage() {
           <Button onClick={handleUpdateStatus} isLoading={isPending}>
             Konfirmasi
           </Button>
+        </div>
+      </Modal>
+
+      {/* Bukti Transfer Modal */}
+      <Modal
+        isOpen={buktiModal.open}
+        onClose={() => setBuktiModal({ open: false, imageUrl: "" })}
+        title="Bukti Transfer"
+      >
+        <div className="flex justify-center">
+          {buktiModal.imageUrl && (
+            <Image
+              src={buktiModal.imageUrl}
+              alt="Bukti Transfer"
+              width={400}
+              height={500}
+              className="max-h-[70vh] w-auto rounded-lg object-contain"
+            />
+          )}
+        </div>
+        <div className="mt-4 flex justify-end">
+          <Button
+            variant="outline"
+            onClick={() => setBuktiModal({ open: false, imageUrl: "" })}
+          >
+            Tutup
+          </Button>
+        </div>
+      </Modal>
+
+      {/* Assign Kurir Modal */}
+      <Modal
+        isOpen={assignKurirModal.open}
+        onClose={() => setAssignKurirModal({ open: false, pesanan: null, selectedKurir: "" })}
+        title="Tugaskan Kurir"
+      >
+        <div className="space-y-4">
+          <p className="text-gray-600">
+            Pilih kurir untuk mengirim pesanan <strong>{assignKurirModal.pesanan?.noResi}</strong>
+          </p>
+          <div>
+            <label className="mb-2 block text-sm font-medium">Pilih Kurir</label>
+            <Select
+              value={assignKurirModal.selectedKurir}
+              onChange={(e) => setAssignKurirModal((prev) => ({ ...prev, selectedKurir: e.target.value }))}
+            >
+              <option value="">-- Pilih Kurir --</option>
+              {kurirs.map((k) => (
+                <option key={k.id} value={k.id}>
+                  {k.name} ({k.email})
+                </option>
+              ))}
+            </Select>
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setAssignKurirModal({ open: false, pesanan: null, selectedKurir: "" })}
+            >
+              Batal
+            </Button>
+            <Button
+              onClick={handleAssignKurir}
+              isLoading={isPending}
+              disabled={!assignKurirModal.selectedKurir}
+            >
+              Tugaskan
+            </Button>
+          </div>
         </div>
       </Modal>
     </div>

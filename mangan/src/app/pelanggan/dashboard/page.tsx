@@ -20,7 +20,7 @@ export default async function PelangganDashboardPage() {
     total: pesanans?.length || 0,
     menunggu: pesanans?.filter((p) => p.statusPesan === "MenungguKonfirmasi").length || 0,
     proses: pesanans?.filter((p) => p.statusPesan === "SedangDiproses" || p.statusPesan === "MenungguKurir").length || 0,
-    selesai: pesanans?.filter((p) => p.statusPesan === "Selesai").length || 0,
+    selesai: pesanans?.filter((p) => p.pengiriman?.statusKirim === "TibaDitujuan").length || 0,
   };
 
   const recentOrders = pesanans?.slice(0, 5) || [];

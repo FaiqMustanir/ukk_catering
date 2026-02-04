@@ -44,8 +44,6 @@ export function getStatusBadgeColor(status: string): string {
     MenungguKonfirmasi: "bg-yellow-100 text-yellow-800",
     SedangDiproses: "bg-blue-100 text-blue-800",
     MenungguKurir: "bg-purple-100 text-purple-800",
-    Selesai: "bg-green-100 text-green-800",
-    Dibatalkan: "bg-red-100 text-red-800",
     SedangDikirim: "bg-blue-100 text-blue-800",
     TibaDitujuan: "bg-green-100 text-green-800",
   };
@@ -57,8 +55,6 @@ export function getStatusLabel(status: string): string {
     MenungguKonfirmasi: "Menunggu Konfirmasi",
     SedangDiproses: "Sedang Diproses",
     MenungguKurir: "Menunggu Kurir",
-    Selesai: "Selesai",
-    Dibatalkan: "Dibatalkan",
     SedangDikirim: "Sedang Dikirim",
     TibaDitujuan: "Tiba di Tujuan",
   };

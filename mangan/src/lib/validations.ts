@@ -116,8 +116,7 @@ export const detailJenisPembayaranSchema = z.object({
 // PEMESANAN SCHEMAS
 // ==========================================
 export const pemesananSchema = z.object({
-  idJenisBayar: z.string().or(z.number()),
-  alamatPengiriman: z.string().min(10, "Alamat pengiriman minimal 10 karakter"),
+  metodePembayaran: z.string(),
   items: z.array(z.object({
     idPaket: z.string().or(z.number()),
     subtotal: z.number(),
@@ -125,7 +124,7 @@ export const pemesananSchema = z.object({
 });
 
 export const pemesananStatusUpdateSchema = z.object({
-  statusPesan: z.enum(["MenungguKonfirmasi", "SedangDiproses", "MenungguKurir", "Selesai", "Dibatalkan"]),
+  statusPesan: z.enum(["MenungguKonfirmasi", "SedangDiproses", "MenungguKurir"]),
 });
 
 // ==========================================
