@@ -28,20 +28,22 @@ enum JenisPaket {
 enum KategoriPaket {
   Pernikahan
   Selamatan
-  UlangTahun
-  StudiTour
+  UlangTahun  @map("Ulang Tahun")
+  StudiTour   @map("Studi Tour")
   Rapat
 }
 
 enum StatusPesanan {
-  MenungguKonfirmasi
-  SedangDiproses
-  MenungguKurir
+  MenungguKonfirmasi @map("Menunggu Konfirmasi")
+  SedangDiproses     @map("Sedang Diproses")
+  MenungguKurir      @map("Menunggu Kurir")
+  SedangDikirim      @map("Sedang Dikirim")
+  Selesai            @map("Selesai")
 }
 
 enum StatusKirim {
-  SedangDikirim
-  TibaDitujuan
+  SedangDikirim @map("Sedang Dikirim")
+  TibaDitujuan  @map("Tiba Ditujuan")
 }
 
 // ==========================================

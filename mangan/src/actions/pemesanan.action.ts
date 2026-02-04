@@ -5,6 +5,7 @@ import { pemesananSchema, type PemesananInput, type PemesananStatusUpdateInput }
 import { generateNoResi } from "@/lib/utils";
 import { uploadImage } from "@/lib/cloudinary";
 import { revalidatePath } from "next/cache";
+import { auth } from "@/lib/auth";
 
 export async function createPemesanan(idPelanggan: string, data: PemesananInput) {
   try {
@@ -234,7 +235,13 @@ export async function updatePemesananStatus(id: string, data: PemesananStatusUpd
     });
 
     revalidatePath("/pelanggan/pesanan");
+    revalidatePath("/pelanggan/dashboard");
     revalidatePath("/admin/pesanan");
+    revalidatePath("/admin/dashboard");
+    revalidatePath("/owner/dashboard");
+    revalidatePath("/owner/penjualan");
+    revalidatePath("/kurir/pengiriman");
+    revalidatePath("/kurir/dashboard");
     return { success: true, message: "Status pesanan berhasil diupdate" };
   } catch (error) {
     console.error("Update status error:", error);
@@ -340,5 +347,40 @@ export async function uploadBuktiTransfer(id: string, buktiBase64: string) {
   } catch (error) {
     console.error("Upload bukti transfer error:", error);
     return { success: false, error: "Terjadi kesalahan saat upload bukti transfer" };
+  }
+}
+
+export async function deletePemesanan(id: string) {
+  try {
+    const session = await auth();
+    if (!session) return { success: false, error: "Unauthorized" };
+
+    const order = await prisma.pemesanan.findUnique({
+      where: { id: BigInt(id) },
+    });
+
+    if (!order) return { success: false, error: "Pesanan tidak ditemukan" };
+
+    const isPelanggan = session.user.type === "pelanggan";
+
+    if (isPelanggan) {
+      if (order.statusPesan !== "MenungguKonfirmasi") {
+        return { success: false, error: "Pesanan tidak dapat dibatalkan karena sudah diproses" };
+      }
+      if (order.buktiTransfer) {
+        return { success: false, error: "Bukti transfer sudah diupload. Tunggu konfirmasi admin." };
+      }
+    }
+
+    await prisma.pemesanan.delete({
+      where: { id: BigInt(id) },
+    });
+
+    revalidatePath("/pelanggan/pesanan");
+    revalidatePath("/admin/pesanan");
+    return { success: true, message: "Pesanan berhasil dibatalkan" };
+  } catch (error) {
+    console.error("Delete pemesanan error:", error);
+    return { success: false, error: "Terjadi kesalahan saat membatalkan pesanan" };
   }
 }

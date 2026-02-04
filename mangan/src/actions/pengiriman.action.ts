@@ -7,35 +7,82 @@ import { revalidatePath } from "next/cache";
 
 export async function createPengiriman(idPesan: string, idUser: string) {
   try {
+    console.log("=== CREATE PENGIRIMAN DEBUG ===");
+    console.log("idPesan:", idPesan);
+    console.log("idUser:", idUser);
+
+    // Validasi input
+    if (!idPesan || !idUser) {
+      return { success: false, error: "ID Pesanan dan ID Kurir harus diisi" };
+    }
+
     // Check if pengiriman already exists for this order
     const existing = await prisma.pengiriman.findUnique({
       where: { idPesan: BigInt(idPesan) },
     });
 
+    console.log("Existing pengiriman:", existing);
+
     if (existing) {
       return { success: false, error: "Pengiriman sudah ada untuk pesanan ini" };
     }
 
-    await prisma.pengiriman.create({
-      data: {
-        idPesan: BigInt(idPesan),
-        idUser: BigInt(idUser),
-        tglKirim: new Date(),
-      },
+    // Verify pesanan exists
+    const pesanan = await prisma.pemesanan.findUnique({
+      where: { id: BigInt(idPesan) },
     });
 
-    // Update pemesanan status
-    await prisma.pemesanan.update({
-      where: { id: BigInt(idPesan) },
-      data: { statusPesan: "MenungguKurir" },
+    if (!pesanan) {
+      return { success: false, error: "Pesanan tidak ditemukan" };
+    }
+
+    console.log("Pesanan found:", pesanan.id.toString(), "status:", pesanan.statusPesan);
+
+    // Verify user (kurir) exists
+    const kurir = await prisma.user.findUnique({
+      where: { id: BigInt(idUser) },
     });
+
+    if (!kurir) {
+      return { success: false, error: "Kurir tidak ditemukan" };
+    }
+
+    console.log("Kurir found:", kurir.name);
+
+    // Use transaction to ensure both operations succeed or fail together
+    await prisma.$transaction(async (tx) => {
+      // Create pengiriman
+      const newPengiriman = await tx.pengiriman.create({
+        data: {
+          idPesan: BigInt(idPesan),
+          idUser: BigInt(idUser),
+          tglKirim: new Date(),
+        },
+      });
+
+      console.log("Pengiriman created:", newPengiriman.id.toString());
+
+      // Update pemesanan status ke SedangDikirim karena kurir sudah ditugaskan
+      await tx.pemesanan.update({
+        where: { id: BigInt(idPesan) },
+        data: { statusPesan: "SedangDikirim" },
+      });
+    });
+
+    console.log("Pesanan status updated to SedangDikirim");
 
     revalidatePath("/kurir/pengiriman");
+    revalidatePath("/kurir/dashboard");
     revalidatePath("/admin/pesanan");
+    revalidatePath("/admin/dashboard");
+    revalidatePath("/pelanggan/pesanan");
+    revalidatePath("/pelanggan/dashboard");
+    revalidatePath("/owner/dashboard");
     return { success: true, message: "Pengiriman berhasil dibuat" };
   } catch (error) {
     console.error("Create pengiriman error:", error);
-    return { success: false, error: "Terjadi kesalahan saat membuat pengiriman" };
+    const errorMessage = error instanceof Error ? error.message : "Terjadi kesalahan saat membuat pengiriman";
+    return { success: false, error: errorMessage };
   }
 }
 
@@ -151,26 +198,64 @@ export async function updatePengiriman(
   buktiFotoBase64?: string
 ) {
   try {
-    let buktiFotoUrl = data.buktiFoto;
+    let buktiFotoUrl: string | undefined = undefined;
 
-    // Upload bukti foto if provided
+    // Upload bukti foto if provided as base64
     if (buktiFotoBase64 && buktiFotoBase64.startsWith("data:image")) {
       buktiFotoUrl = await uploadImage(buktiFotoBase64, "mangan/pengiriman");
+    } else if (data.buktiFoto && data.buktiFoto.startsWith("data:image")) {
+      // Handle case where buktiFoto is passed in data object as base64
+      buktiFotoUrl = await uploadImage(data.buktiFoto, "mangan/pengiriman");
+    } else if (data.buktiFoto && data.buktiFoto.startsWith("http")) {
+      // Keep existing cloudinary URL
+      buktiFotoUrl = data.buktiFoto;
     }
 
-    await prisma.pengiriman.update({
+    const updatePayload: {
+      statusKirim: "SedangDikirim" | "TibaDitujuan";
+      tglKirim?: Date;
+      tglTiba?: Date;
+      buktiFoto?: string;
+    } = {
+      statusKirim: data.statusKirim,
+    };
+
+    if (data.tglKirim) {
+      updatePayload.tglKirim = new Date(data.tglKirim);
+    }
+    
+    if (data.tglTiba) {
+      updatePayload.tglTiba = new Date(data.tglTiba);
+    }
+
+    if (buktiFotoUrl) {
+      updatePayload.buktiFoto = buktiFotoUrl;
+    }
+
+    const updatedPengiriman = await prisma.pengiriman.update({
       where: { id: BigInt(id) },
-      data: {
-        statusKirim: data.statusKirim,
-        tglKirim: data.tglKirim ? new Date(data.tglKirim) : undefined,
-        tglTiba: data.tglTiba ? new Date(data.tglTiba) : undefined,
-        buktiFoto: buktiFotoUrl,
-      },
+      data: updatePayload,
     });
+
+    // Sinkronisasi status pemesanan berdasarkan status pengiriman
+    if (updatePayload.statusKirim === "SedangDikirim") {
+      await prisma.pemesanan.update({
+        where: { id: updatedPengiriman.idPesan },
+        data: { statusPesan: "SedangDikirim" },
+      });
+    } else if (updatePayload.statusKirim === "TibaDitujuan") {
+      await prisma.pemesanan.update({
+        where: { id: updatedPengiriman.idPesan },
+        data: { statusPesan: "Selesai" },
+      });
+    }
 
     revalidatePath("/kurir/pengiriman");
     revalidatePath("/pelanggan/pesanan");
     revalidatePath("/admin/pesanan");
+    revalidatePath("/admin/dashboard");
+    revalidatePath("/owner/dashboard");
+    revalidatePath("/owner/penjualan");
     return { success: true, message: "Pengiriman berhasil diupdate" };
   } catch (error) {
     console.error("Update pengiriman error:", error);

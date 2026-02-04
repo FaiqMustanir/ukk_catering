@@ -120,7 +120,7 @@ export default async function AdminDashboardPage() {
                       <p className="font-medium text-stone-800 mt-1">{pesanan.pelanggan}</p>
                       <p className="text-xs text-stone-500 truncate max-w-[200px]">{pesanan.alamat}</p>
                     </div>
-                    <Link href={`/admin/pesanan/${pesanan.id}/assign`}>
+                    <Link href={`/admin/pesanan?assign=${pesanan.id}`}>
                       <Button size="sm" className="bg-orange-500 hover:bg-orange-600 text-white">
                         Assign
                       </Button>

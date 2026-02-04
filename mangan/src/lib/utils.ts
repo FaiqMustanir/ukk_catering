@@ -1,55 +1,42 @@
-import { clsx, type ClassValue } from "clsx";
-import { twMerge } from "tailwind-merge";
+import { clsx, type ClassValue } from "clsx"
+import { twMerge } from "tailwind-merge"
 
 export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
+  return twMerge(clsx(inputs))
 }
 
-export function formatCurrency(amount: number | string | null | undefined): string {
-  const numericAmount = Number(amount) || 0;
+// Format currency to IDR
+export function formatCurrency(amount: number): string {
   return new Intl.NumberFormat("id-ID", {
     style: "currency",
     currency: "IDR",
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
-  }).format(numericAmount);
+  }).format(amount);
 }
 
-export function formatDate(date: Date | string): string {
+// Format date to Indonesian format
+export function formatDate(date: Date): string {
   return new Intl.DateTimeFormat("id-ID", {
     day: "numeric",
     month: "long",
     year: "numeric",
-  }).format(new Date(date));
+  }).format(date);
 }
 
+// Format date with time
 export function formatDateTime(date: Date | string): string {
+  const d = typeof date === "string" ? new Date(date) : date;
   return new Intl.DateTimeFormat("id-ID", {
     day: "numeric",
     month: "long",
     year: "numeric",
     hour: "2-digit",
     minute: "2-digit",
-  }).format(new Date(date));
+  }).format(d);
 }
 
-export function generateNoResi(): string {
-  const timestamp = Date.now().toString(36).toUpperCase();
-  const random = Math.random().toString(36).substring(2, 6).toUpperCase();
-  return `MNG-${timestamp}-${random}`;
-}
-
-export function getStatusBadgeColor(status: string): string {
-  const colors: Record<string, string> = {
-    MenungguKonfirmasi: "bg-yellow-100 text-yellow-800",
-    SedangDiproses: "bg-blue-100 text-blue-800",
-    MenungguKurir: "bg-purple-100 text-purple-800",
-    SedangDikirim: "bg-blue-100 text-blue-800",
-    TibaDitujuan: "bg-green-100 text-green-800",
-  };
-  return colors[status] || "bg-gray-100 text-gray-800";
-}
-
+// Get status label
 export function getStatusLabel(status: string): string {
   const labels: Record<string, string> = {
     MenungguKonfirmasi: "Menunggu Konfirmasi",
@@ -57,10 +44,25 @@ export function getStatusLabel(status: string): string {
     MenungguKurir: "Menunggu Kurir",
     SedangDikirim: "Sedang Dikirim",
     TibaDitujuan: "Tiba di Tujuan",
+    Selesai: "Selesai",
   };
   return labels[status] || status;
 }
 
+// Get status badge color
+export function getStatusBadgeColor(status: string): string {
+  const colors: Record<string, string> = {
+    MenungguKonfirmasi: "bg-yellow-100 text-yellow-800",
+    SedangDiproses: "bg-blue-100 text-blue-800",
+    MenungguKurir: "bg-purple-100 text-purple-800",
+    SedangDikirim: "bg-indigo-100 text-indigo-800",
+    TibaDitujuan: "bg-green-100 text-green-800",
+    Selesai: "bg-green-100 text-green-800",
+  };
+  return colors[status] || "bg-gray-100 text-gray-800";
+}
+
+// Get kategori label
 export function getKategoriLabel(kategori: string): string {
   const labels: Record<string, string> = {
     Pernikahan: "Pernikahan",
@@ -70,4 +72,14 @@ export function getKategoriLabel(kategori: string): string {
     Rapat: "Rapat",
   };
   return labels[kategori] || kategori;
+}
+
+// Generate No Resi
+export function generateNoResi(): string {
+  const date = new Date();
+  const year = date.getFullYear().toString().slice(-2);
+  const month = (date.getMonth() + 1).toString().padStart(2, "0");
+  const day = date.getDate().toString().padStart(2, "0");
+  const random = Math.floor(Math.random() * 10000).toString().padStart(4, "0");
+  return `MNG${year}${month}${day}${random}`;
 }

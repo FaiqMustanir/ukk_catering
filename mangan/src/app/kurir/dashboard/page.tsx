@@ -1,9 +1,10 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { getPengirimanKurir, getKurirStats } from "@/actions/dashboard.action";
-import { Truck, MapPin, CheckSquare, Clock, Phone, Navigation, PackageCheck } from "lucide-react";
+import { Truck, MapPin, CheckSquare, Clock, Phone, PackageCheck, User } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 export default async function KurirDashboardPage() {
@@ -79,39 +80,58 @@ export default async function KurirDashboardPage() {
               <p className="text-xs mt-1">Tunggu admin untuk assign pengiriman baru.</p>
             </div>
           ) : (
-            <div className="divide-y divide-stone-100">
+            <div className="divide-y divide-stone-100 p-4 space-y-4">
               {pengiriman.map((item) => (
-                <div key={item.id} className="p-4 hover:bg-stone-50 transition-colors">
-                  <div className="flex justify-between items-start mb-2">
-                    <div className="flex gap-2">
+                <div key={item.id} className="bg-white border text-stone-700 border-stone-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
+                  {/* Header: Resi & Status */}
+                  <div className="flex justify-between items-start mb-4 pb-3 border-b border-stone-100">
+                    <div>
+                      <span className="text-[10px] uppercase font-bold text-stone-500 tracking-wider">Nomor Resi</span>
+                      <p className="font-mono font-bold text-lg text-stone-800">#{item.idPesan}</p>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-[10px] uppercase font-bold text-stone-500 tracking-wider block mb-1">Status Pengiriman</span>
                       <Badge 
                         variant={item.status === "SedangDikirim" ? "default" : "secondary"} 
                         className={item.status === "SedangDikirim" ? "bg-blue-600 hover:bg-blue-700" : "bg-stone-200 text-stone-700"}
                       >
                         {item.status === "SedangDikirim" ? "Sedang Diantar" : item.status}
                       </Badge>
-                      <span className="text-xs font-mono text-stone-400 flex items-center">#{item.idPesan}</span>
                     </div>
-                    <Button size="icon" variant="ghost" className="h-8 w-8 text-stone-400">
-                      <Navigation className="h-4 w-4" />
-                    </Button>
+                  </div>
+
+                  {/* Customer Details */}
+                  <div className="grid sm:grid-cols-2 gap-4 mb-4">
+                    <div>
+                      <span className="flex items-center gap-1.5 text-[10px] uppercase font-bold text-stone-500 tracking-wider mb-1">
+                        <User className="h-3 w-3" /> Penerima
+                      </span>
+                      <p className="font-semibold text-base text-stone-900">{item.pelanggan}</p>
+                      <a href={`tel:${item.telepon}`} className="text-sm text-stone-600 flex items-center gap-1 mt-1 hover:text-blue-600">
+                        <Phone className="h-3 w-3" /> {item.telepon}
+                      </a>
+                    </div>
+                    
+                    <div className="bg-stone-50 p-3 rounded-md">
+                      <span className="flex items-center gap-1.5 text-[10px] uppercase font-bold text-stone-500 tracking-wider mb-1">
+                        <MapPin className="h-3 w-3" /> Alamat Tujuan
+                      </span>
+                      <p className="text-sm text-stone-800 leading-snug">{item.alamat}</p>
+                    </div>
                   </div>
                   
-                  <h4 className="font-bold text-stone-900">{item.pelanggan}</h4>
-                  <div className="flex items-start gap-2 mt-1 text-sm text-stone-600">
-                    <MapPin className="h-4 w-4 mt-0.5 shrink-0 text-stone-400" />
-                    <p>{item.alamat}</p>
-                  </div>
-                  
-                  <div className="flex gap-3 mt-4">
+                  {/* Actions */}
+                  <div className="flex gap-3 pt-2">
                     <a href={`tel:${item.telepon}`} className="flex-1">
-                      <Button size="sm" variant="outline" className="w-full border-stone-300 text-stone-700">
-                        <Phone className="h-3 w-3 mr-2" /> {item.telepon}
+                      <Button variant="outline" className="w-full border-stone-300 text-stone-700 hover:bg-stone-50">
+                        <Phone className="h-4 w-4 mr-2" /> Hubungi
                       </Button>
                     </a>
-                    <Button size="sm" className="flex-1 bg-green-600 hover:bg-green-700 text-white">
-                      <CheckSquare className="h-3 w-3 mr-2" /> Selesai
-                    </Button>
+                    <Link href="/kurir/pengiriman" className="flex-1">
+                       <Button className="w-full bg-green-600 hover:bg-green-700 text-white">
+                         <PackageCheck className="h-4 w-4 mr-2" /> Kelola & Selesaikan
+                       </Button>
+                    </Link>
                   </div>
                 </div>
               ))}

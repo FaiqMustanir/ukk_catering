@@ -12,6 +12,7 @@ import {
   ChefHat,
   Menu,
   X,
+  Home,
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -83,6 +84,14 @@ export default function PelangganLayout({
         </div>
 
         <nav className="flex-1 space-y-1 px-4">
+          <Link
+            href="/"
+            onClick={() => setSidebarOpen(false)}
+            className="flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium text-orange-600 bg-orange-50 hover:bg-orange-100 mb-2"
+          >
+            <Home className="h-5 w-5" />
+            Kembali ke Beranda
+          </Link>
           {menuItems.map((item) => {
             const isActive = pathname === item.href;
             return (

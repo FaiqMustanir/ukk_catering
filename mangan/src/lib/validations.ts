@@ -124,7 +124,7 @@ export const pemesananSchema = z.object({
 });
 
 export const pemesananStatusUpdateSchema = z.object({
-  statusPesan: z.enum(["MenungguKonfirmasi", "SedangDiproses", "MenungguKurir"]),
+  statusPesan: z.enum(["MenungguKonfirmasi", "SedangDiproses", "MenungguKurir", "SedangDikirim", "Selesai"]),
 });
 
 // ==========================================

@@ -11,30 +11,28 @@ import { Select } from "@/components/ui/select";
 
 type Pemesanan = {
   id: string;
-  tanggalPesan: Date;
-  tanggalAcara: Date;
-  totalHarga: number;
-  status: string;
+  tglPesan: Date;
+  totalBayar: number;
+  statusPesan: string;
   pelanggan: {
-    nama: string;
+    namaPelanggan: string;
   };
-  detailPemesanan: {
+  detailPemesanans: {
     id: string;
-    jumlah: number;
+    subtotal: number;
     paket: {
       namaPaket: string;
     };
   }[];
 };
 
-const statusOptions = [
-  { value: "menunggu", label: "Menunggu", color: "warning" as const },
-  { value: "diproses", label: "Diproses", color: "info" as const },
-  { value: "siap", label: "Siap Kirim", color: "info" as const },
-  { value: "dikirim", label: "Dikirim", color: "info" as const },
-  { value: "selesai", label: "Selesai", color: "success" as const },
-  { value: "dibatalkan", label: "Dibatalkan", color: "destructive" as const },
-];
+  const statusOptions = [
+    { value: "MenungguKonfirmasi", label: "Menunggu Konfirmasi", color: "warning" as const },
+    { value: "SedangDiproses", label: "Sedang Diproses", color: "info" as const },
+    { value: "MenungguKurir", label: "Menunggu Kurir", color: "secondary" as const },
+    { value: "Selesai", label: "Selesai", color: "success" as const },
+    { value: "Dibatalkan", label: "Dibatalkan", color: "destructive" as const },
+  ];
 
 export default function OwnerPenjualanPage() {
   const [pesanan, setPesanan] = useState<Pemesanan[]>([]);
@@ -88,10 +86,10 @@ export default function OwnerPenjualanPage() {
 
   // Calculate totals
   const totalPendapatan = filteredPesanan
-    .filter((p) => p.status === "Selesai")
-    .reduce((sum, p) => sum + p.totalHarga, 0);
+    .filter((p) => p.statusPesan === "Selesai") // Note: Status "Selesai" might not be in DB yet, usually strictly from DB Enums
+    .reduce((sum, p) => sum + p.totalBayar, 0);
   const totalPesanan = filteredPesanan.length;
-  const pesananSelesai = filteredPesanan.filter((p) => p.status === "Selesai").length;
+  const pesananSelesai = filteredPesanan.filter((p) => p.statusPesan === "Selesai").length;
 
   if (loading) {
     return (
@@ -159,15 +157,15 @@ export default function OwnerPenjualanPage() {
                       #{p.id.slice(-8)}
                     </td>
                     <td className="px-4 py-3 text-sm">
-                      {formatDate(new Date(p.tanggalPesan))}
+                      {formatDate(new Date(p.tglPesan))}
                     </td>
-                    <td className="px-4 py-3 text-sm font-medium">{p.pelanggan.nama}</td>
+                    <td className="px-4 py-3 text-sm font-medium">{p.pelanggan.namaPelanggan}</td>
                     <td className="px-4 py-3 text-sm">
-                      {p.detailPemesanan.map((d) => `${d.paket.namaPaket} x${d.jumlah}`).join(", ")}
+                      {p.detailPemesanans.map((d) => d.paket.namaPaket).join(", ")}
                     </td>
-                    <td className="px-4 py-3">{getStatusBadge(p.status)}</td>
+                    <td className="px-4 py-3">{getStatusBadge(p.statusPesan)}</td>
                     <td className="px-4 py-3 text-right font-medium">
-                      {formatCurrency(p.totalHarga)}
+                      {formatCurrency(p.totalBayar)}
                     </td>
                   </tr>
                 ))}

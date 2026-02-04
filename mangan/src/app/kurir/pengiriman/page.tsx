@@ -240,118 +240,139 @@ export default function KurirPengirimanPage() {
           <Card
             key={p.id}
             className={
-              p.statusKirim === "SedangDikirim" ? "border-l-4 border-l-orange-500" : ""
+              p.statusKirim === "SedangDikirim" ? "ring-1 ring-blue-500 shadow-md" : "border-stone-200"
             }
           >
-            <CardContent className="p-4">
-              <div className="flex flex-col gap-4">
-                {/* Header */}
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div className="flex items-center gap-2">
-                    <span className="font-mono text-sm text-gray-500">
-                      {p.pemesanan?.noResi || "-"}
+            <CardContent className="p-0">
+               {/* Header Section */}
+               <div className="bg-stone-50/50 p-4 border-b border-stone-100 flex flex-wrap items-start justify-between gap-4">
+                 <div className="space-y-1">
+                   <div className="flex items-center gap-2">
+                     <span className="text-[10px] uppercase font-bold text-stone-500 tracking-wider">Nomor Resi</span>
+                     <span className="font-mono font-bold text-lg text-stone-800 tracking-tight">{p.pemesanan?.noResi || "-"}</span>
+                   </div>
+                   <div className="flex items-center gap-2 text-xs text-stone-500">
+                     <Calendar className="h-3 w-3" />
+                     <span>Dipesan: {p.pemesanan?.tglPesan ? formatDate(new Date(p.pemesanan.tglPesan)) : "-"}</span>
+                   </div>
+                 </div>
+                 
+                 <div className="text-right">
+                   <div className="flex flex-col items-end gap-1">
+                     <span className="text-[10px] uppercase font-bold text-stone-500 tracking-wider">Status</span>
+                     {getStatusBadge(p.statusKirim)}
+                   </div>
+                 </div>
+               </div>
+
+               <div className="p-4 space-y-6">
+                {/* Customer Info Section */}
+                <div className="grid gap-6 sm:grid-cols-2">
+                  <div className="space-y-3">
+                    <div>
+                      <span className="flex items-center gap-1.5 text-[10px] uppercase font-bold text-stone-500 tracking-wider mb-1">
+                        <User className="h-3 w-3" /> Penerima
+                      </span>
+                      <p className="font-semibold text-stone-900">{p.pemesanan?.pelanggan?.namaPelanggan || "-"}</p>
+                      {p.pemesanan?.pelanggan?.telepon && (
+                        <a
+                          href={`tel:${p.pemesanan.pelanggan.telepon}`}
+                          className="inline-flex items-center gap-1.5 text-sm font-medium text-blue-600 hover:text-blue-700 hover:underline mt-1"
+                        >
+                          <Phone className="h-3 w-3" />
+                          {p.pemesanan.pelanggan.telepon}
+                        </a>
+                      )}
+                    </div>
+
+                    <div>
+                      <span className="text-[10px] uppercase font-bold text-stone-500 tracking-wider block mb-1">Total Pembayaran</span>
+                       <p className="text-xl font-bold text-orange-600">
+                        {formatCurrency(p.pemesanan?.totalBayar || 0)}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="bg-stone-50 rounded-lg p-3 border border-stone-100">
+                    <span className="flex items-center gap-1.5 text-[10px] uppercase font-bold text-stone-500 tracking-wider mb-2">
+                      <MapPin className="h-3 w-3" /> Alamat Pengiriman
                     </span>
-                    {getStatusBadge(p.statusKirim)}
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
-                    <Calendar className="h-4 w-4" />
-                    {p.pemesanan?.tglPesan ? formatDate(new Date(p.pemesanan.tglPesan)) : "-"}
+                    <p className="text-sm text-stone-800 leading-relaxed">
+                      {p.pemesanan?.pelanggan?.alamat1 || "Alamat belum diisi"}
+                    </p>
                   </div>
                 </div>
 
-                {/* Customer Info */}
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <User className="h-4 w-4 text-gray-400" />
-                      <span className="font-semibold">{p.pemesanan?.pelanggan?.namaPelanggan || "-"}</span>
+                {/* Timeline & Proof Section */}
+                <div className="border-t border-stone-100 pt-4">
+                  <span className="text-[10px] uppercase font-bold text-stone-500 tracking-wider block mb-3">Timeline Pengiriman</span>
+                  
+                  <div className="space-y-3">
+                    {/* Dikirim Status */}
+                    <div className="flex items-start gap-3">
+                      <div className={`mt-0.5 h-2 w-2 rounded-full ${p.tglKirim ? 'bg-blue-500 shadow-[0_0_0_2px_rgba(59,130,246,0.2)]' : 'bg-stone-300'}`} />
+                      <div>
+                        <p className={`text-sm font-medium ${p.tglKirim ? 'text-stone-900' : 'text-stone-400'}`}>
+                          Paket Dikirim
+                        </p>
+                        {p.tglKirim && (
+                          <p className="text-xs text-stone-500 mt-0.5">
+                             {formatDate(new Date(p.tglKirim))}
+                          </p>
+                        )}
+                      </div>
                     </div>
-                    {p.pemesanan?.pelanggan?.telepon && (
-                      <a
-                        href={`tel:${p.pemesanan.pelanggan.telepon}`}
-                        className="mt-1 flex items-center gap-2 text-sm text-blue-600 hover:underline"
-                      >
-                        <Phone className="h-4 w-4" />
-                        {p.pemesanan.pelanggan.telepon}
-                      </a>
-                    )}
-                  </div>
 
-                  <div>
-                    <div className="flex items-start gap-2">
-                      <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-gray-400" />
-                      <p className="text-sm">{p.pemesanan?.pelanggan?.alamat1 || "Alamat belum diisi"}</p>
+                    {/* Tiba Status */}
+                    <div className="flex items-start gap-3">
+                       <div className={`mt-0.5 h-2 w-2 rounded-full ${p.tglTiba ? 'bg-green-500 shadow-[0_0_0_2px_rgba(34,197,94,0.2)]' : 'bg-stone-300'}`} />
+                      <div>
+                        <p className={`text-sm font-medium ${p.tglTiba ? 'text-stone-900' : 'text-stone-400'}`}>
+                          Paket Tiba di Tujuan
+                        </p>
+                        {p.tglTiba && (
+                          <p className="text-xs text-stone-500 mt-0.5">
+                             {formatDate(new Date(p.tglTiba))}
+                          </p>
+                        )}
+                      </div>
                     </div>
-                    {p.pemesanan?.pelanggan?.alamat1 && (
-                      <a
-                        href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-                          p.pemesanan.pelanggan.alamat1
-                        )}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="mt-1 inline-flex items-center gap-1 text-sm text-blue-600 hover:underline"
-                      >
-                        <Navigation className="h-3 w-3" />
-                        Buka di Google Maps
-                      </a>
-                    )}
                   </div>
-                </div>
-
-                {/* Total */}
-                <div className="rounded-lg bg-gray-50 p-3">
-                  <p className="text-sm text-gray-600">Total Bayar:</p>
-                  <p className="text-lg font-bold text-orange-600">
-                    {formatCurrency(p.pemesanan?.totalBayar || 0)}
-                  </p>
-                </div>
-
-                {/* Timestamps */}
-                {p.tglKirim && (
-                  <div className="text-sm text-gray-600">
-                    <Truck className="mr-1 inline h-4 w-4" />
-                    Dikirim: {formatDate(new Date(p.tglKirim))}
-                  </div>
-                )}
-                {p.tglTiba && (
-                  <div className="text-sm text-green-600">
-                    <CheckCircle className="mr-1 inline h-4 w-4" />
-                    Tiba: {formatDate(new Date(p.tglTiba))}
-                  </div>
-                )}
-
-                {/* Actions */}
-                <div className="flex flex-wrap gap-2">
-                  {p.statusKirim === "SedangDikirim" && (
-                    <Button
-                      size="sm"
-                      onClick={() => openUpdateModal(p, "TibaDitujuan")}
-                      className="bg-green-600 hover:bg-green-700"
-                    >
-                      <CheckCircle className="mr-1 h-4 w-4" />
-                      Tandai Sampai
-                    </Button>
-                  )}
-
-                  {p.statusKirim === "TibaDitujuan" && (
-                    <div className="flex items-center gap-2 text-sm text-green-600">
-                      <CheckCircle className="h-4 w-4" />
-                      Pengiriman selesai
-                    </div>
-                  )}
                 </div>
 
                 {/* Bukti Foto */}
                 {p.buktiFoto && (
-                  <div className="mt-2">
-                    <p className="text-xs font-medium text-gray-500">Bukti Pengiriman:</p>
-                    <img
-                      src={p.buktiFoto}
-                      alt="Bukti Pengiriman"
-                      className="mt-1 h-32 rounded-lg object-cover"
-                    />
+                  <div className="mt-4 border-t border-stone-100 pt-4">
+                    <span className="text-[10px] uppercase font-bold text-stone-500 tracking-wider block mb-2">Bukti Penerimaan</span>
+                    <div className="relative h-48 w-full sm:w-64 rounded-lg overflow-hidden border border-stone-200">
+                      <img
+                        src={p.buktiFoto}
+                        alt="Bukti Pengiriman"
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
                   </div>
                 )}
+                
+                {/* Actions Footer */}
+                <div className="flex items-center justify-end gap-3 pt-2">
+                  {p.statusKirim === "SedangDikirim" && (
+                    <Button
+                      onClick={() => openUpdateModal(p, "TibaDitujuan")}
+                      className="bg-green-600 hover:bg-green-700 text-white shadow-sm"
+                    >
+                      <CheckCircle className="mr-2 h-4 w-4" />
+                      Konfirmasi Paket Sampai
+                    </Button>
+                  )}
+
+                  {p.statusKirim === "TibaDitujuan" && (
+                    <div className="flex items-center gap-2 px-4 py-2 bg-green-50 text-green-700 rounded-full text-sm font-medium border border-green-100">
+                      <CheckCircle className="h-4 w-4" />
+                      Pengiriman Selesai
+                    </div>
+                  )}
+                </div>
               </div>
             </CardContent>
           </Card>

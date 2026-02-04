@@ -135,10 +135,11 @@ export async function getPendapatanBulanan(year: number = new Date().getFullYear
 // Get pesanan yang sudah diproses tapi belum di-assign kurir
 export async function getPesananMenungguKurir() {
   try {
-    // Pesanan yang statusnya "MenungguKurir" tapi belum ada di tabel pengiriman
+    // Pesanan yang statusnya "SedangDiproses" dan belum ada pengiriman
     const pesanan = await prisma.pemesanan.findMany({
       where: {
-        statusPesan: "MenungguKurir",
+        statusPesan: "SedangDiproses",
+        pengiriman: null,
       },
       include: {
         pelanggan: {

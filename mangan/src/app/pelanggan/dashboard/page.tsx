@@ -29,7 +29,7 @@ export default async function PelangganDashboardPage() {
     <div>
       <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
       <p className="text-gray-600">Selamat datang, {session.user.name}!</p>
-
+      
       {/* Stats */}
       <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card>

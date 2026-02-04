@@ -6,7 +6,6 @@ import { ImageUpload } from "@/components/ui/image-upload";
 import { Modal } from "@/components/ui/modal";
 import { uploadBuktiTransfer } from "@/actions/pemesanan.action";
 import { Upload, CheckCircle, ImageIcon } from "lucide-react";
-import Image from "next/image";
 
 interface Props {
   pesananId: string;
@@ -66,11 +65,10 @@ export function UploadBuktiTransfer({ pesananId, buktiTransfer, metodePembayaran
           title="Bukti Transfer"
         >
           <div className="flex justify-center">
-            <Image
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
               src={buktiTransfer}
               alt="Bukti Transfer"
-              width={400}
-              height={500}
               className="max-h-[70vh] w-auto rounded-lg object-contain"
             />
           </div>
@@ -86,17 +84,19 @@ export function UploadBuktiTransfer({ pesananId, buktiTransfer, metodePembayaran
 
   return (
     <>
-      <div className="rounded-lg border border-orange-200 bg-orange-50 p-4">
-        <p className="text-sm text-orange-700 mb-3">
-          Sudah transfer? Upload bukti pembayaran Anda:
+      <div className="rounded-lg border border-orange-200 bg-orange-50 p-6">
+        <h3 className="text-lg font-semibold text-orange-800 mb-2">Konfirmasi Pembayaran</h3>
+        <p className="text-sm text-gray-700 mb-4 leading-relaxed">
+          Mohon segera lakukan pembayaran sesuai nominal yang tertera. 
+          Setelah melakukan transfer, silakan upload bukti pembayaran di sini agar pesanan Anda dapat segera kami proses.
         </p>
         <Button
           onClick={() => setModalOpen(true)}
-          className="w-full"
-          variant="outline"
+          className="w-full bg-orange-600 hover:bg-orange-700 text-white shadow-md transition-all hover:shadow-lg"
+          size="lg"
         >
-          <Upload className="mr-2 h-4 w-4" />
-          Upload Bukti Transfer
+          <Upload className="mr-2 h-5 w-5" />
+          Upload Bukti Transfer Sekarang
         </Button>
       </div>
 

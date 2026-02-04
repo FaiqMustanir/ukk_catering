@@ -182,12 +182,17 @@ export default function KeranjangPage() {
         
         setMessage({ 
           type: "success", 
-          text: `Pesanan berhasil dibuat! No. Resi: ${result.noResi}` 
+          text: `Pesanan berhasil dibuat! Mengalihkan ke detail pesanan...` 
         });
 
+        // Redirect directly to the order detail page
         setTimeout(() => {
-          router.push("/pelanggan/pesanan");
-        }, 2000);
+          if (result.id) {
+            router.push(`/pelanggan/pesanan/${result.id}`);
+          } else {
+            router.push("/pelanggan/pesanan");
+          }
+        }, 1500);
       } else {
         setMessage({ type: "error", text: result.error || "Gagal membuat pesanan" });
       }

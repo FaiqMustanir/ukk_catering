@@ -10,11 +10,12 @@ import { Badge } from "@/components/ui/badge";
 import { Modal } from "@/components/ui/modal";
 import { useToast } from "@/components/ui/toast";
 import { formatCurrency, formatDate } from "@/lib/utils";
-import { Eye, Search, Truck, ImageIcon } from "lucide-react";
+import { Eye, Search, Truck, ImageIcon, CheckCircle } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import Link from "next/link";
 import Image from "next/image";
+import { useSearchParams, useRouter } from "next/navigation";
 
 // Types sesuai PDM
 type Pemesanan = {
@@ -63,6 +64,8 @@ const statusOptions = [
   { value: "MenungguKonfirmasi", label: "Menunggu Konfirmasi", color: "warning" as const },
   { value: "SedangDiproses", label: "Sedang Diproses", color: "info" as const },
   { value: "MenungguKurir", label: "Menunggu Kurir", color: "secondary" as const },
+  { value: "SedangDikirim", label: "Sedang Dikirim", color: "info" as const },
+  { value: "Selesai", label: "Selesai", color: "success" as const },
 ];
 
 export default function AdminPesananPage() {
@@ -72,11 +75,6 @@ export default function AdminPesananPage() {
   const [detailModal, setDetailModal] = useState<{ open: boolean; pesanan: Pemesanan | null }>({
     open: false,
     pesanan: null,
-  });
-  const [statusModal, setStatusModal] = useState<{ open: boolean; pesanan: Pemesanan | null; newStatus: string }>({
-    open: false,
-    pesanan: null,
-    newStatus: "",
   });
   const [assignKurirModal, setAssignKurirModal] = useState<{ open: boolean; pesanan: Pemesanan | null; selectedKurir: string }>({
     open: false,
@@ -89,6 +87,8 @@ export default function AdminPesananPage() {
   });
   const [isPending, startTransition] = useTransition();
   const { showToast } = useToast();
+  const searchParams = useSearchParams();
+  const router = useRouter();
 
   // Filters
   const [search, setSearch] = useState("");
@@ -118,39 +118,47 @@ export default function AdminPesananPage() {
     fetchPesanan();
   }, []);
 
-  const handleUpdateStatus = async () => {
-    if (!statusModal.pesanan || !statusModal.newStatus) return;
-
-    startTransition(async () => {
-      const result = await updatePemesananStatus(
-        statusModal.pesanan!.id,
-        { statusPesan: statusModal.newStatus as "MenungguKonfirmasi" | "SedangDiproses" | "MenungguKurir" }
-      );
-      if (result.success) {
-        showToast("Status pesanan berhasil diupdate", "success");
-        fetchPesanan();
-      } else {
-        showToast(result.error || "Gagal mengupdate status", "error");
+  useEffect(() => {
+    const assignId = searchParams.get("assign");
+    if (assignId && pesanan.length > 0 && !loading) {
+      const targetPesanan = pesanan.find((p) => p.id === assignId);
+      // Hanya buka modal jika pesanan ditemukan, status SedangDiproses, dan belum ada pengiriman
+      if (targetPesanan && targetPesanan.statusPesan === "SedangDiproses" && !targetPesanan.pengiriman) {
+        setAssignKurirModal({ open: true, pesanan: targetPesanan, selectedKurir: "" });
       }
-      setStatusModal({ open: false, pesanan: null, newStatus: "" });
-    });
-  };
+      // Hapus parameter dari URL untuk mencegah re-open
+      router.replace("/admin/pesanan");
+    }
+  }, [pesanan, searchParams, loading, router]);
 
   const handleAssignKurir = async () => {
     if (!assignKurirModal.pesanan || !assignKurirModal.selectedKurir) return;
 
+    // Tutup modal dulu sebelum proses
+    const pesananToAssign = assignKurirModal.pesanan;
+    const kurirToAssign = assignKurirModal.selectedKurir;
+    setAssignKurirModal({ open: false, pesanan: null, selectedKurir: "" });
+
     startTransition(async () => {
-      const result = await createPengiriman(
-        assignKurirModal.pesanan!.id,
-        assignKurirModal.selectedKurir
-      );
+      const result = await createPengiriman(pesananToAssign.id, kurirToAssign);
       if (result.success) {
         showToast("Kurir berhasil ditugaskan", "success");
         fetchPesanan();
       } else {
         showToast(result.error || "Gagal menugaskan kurir", "error");
       }
-      setAssignKurirModal({ open: false, pesanan: null, selectedKurir: "" });
+    });
+  };
+
+  const handleKonfirmasiPembayaran = async (pesananId: string) => {
+    startTransition(async () => {
+      const result = await updatePemesananStatus(pesananId, { statusPesan: "SedangDiproses" });
+      if (result.success) {
+        showToast("Pembayaran berhasil dikonfirmasi. Silakan tugaskan kurir.", "success");
+        fetchPesanan();
+      } else {
+        showToast(result.error || "Gagal mengkonfirmasi pembayaran", "error");
+      }
     });
   };
 
@@ -294,7 +302,7 @@ export default function AdminPesananPage() {
                 </div>
 
                 <div className="flex flex-col gap-2">
-                  <div className="flex gap-2">
+                  <div className="flex flex-wrap gap-2">
                     <Button
                       variant="outline"
                       size="sm"
@@ -302,39 +310,35 @@ export default function AdminPesananPage() {
                     >
                       <Eye className="mr-1 h-4 w-4" /> Detail
                     </Button>
-                    <Select
-                      value={p.statusPesan}
-                      onChange={(e) => {
-                        setStatusModal({
-                          open: true,
-                          pesanan: p,
-                          newStatus: e.target.value,
-                        });
-                      }}
-                      className="w-40"
-                    >
-                      {statusOptions.map((status) => (
-                        <option key={status.value} value={status.value}>
-                          {status.label}
-                        </option>
-                      ))}
-                    </Select>
+                    {/* Tombol Konfirmasi Pembayaran - tampil jika status MenungguKonfirmasi dan ada bukti transfer */}
+                    {p.statusPesan === "MenungguKonfirmasi" && p.buktiTransfer && (
+                      <Button
+                        size="sm"
+                        className="bg-green-600 text-white hover:bg-green-700"
+                        onClick={() => handleKonfirmasiPembayaran(p.id)}
+                        disabled={isPending}
+                      >
+                        <CheckCircle className="mr-1 h-4 w-4" /> Konfirmasi
+                      </Button>
+                    )}
+                    {/* Tombol Assign Kurir - tampil jika status SedangDiproses dan belum ada pengiriman */}
+                    {p.statusPesan === "SedangDiproses" && !p.pengiriman && (
+                      <Button
+                        size="sm"
+                        className="bg-blue-600 text-white hover:bg-blue-700"
+                        onClick={() => setAssignKurirModal({ open: true, pesanan: p, selectedKurir: "" })}
+                      >
+                        <Truck className="mr-1 h-4 w-4" /> Tugaskan Kurir
+                      </Button>
+                    )}
                   </div>
-                  {/* Assign Kurir Button - tampil jika status SedangDiproses dan belum ada pengiriman */}
-                  {p.statusPesan === "SedangDiproses" && !p.pengiriman && (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="border-blue-500 text-blue-600 hover:bg-blue-50"
-                      onClick={() => setAssignKurirModal({ open: true, pesanan: p, selectedKurir: "" })}
-                    >
-                      <Truck className="mr-1 h-4 w-4" /> Tugaskan Kurir
-                    </Button>
-                  )}
                   {p.pengiriman && (
-                    <span className="text-xs text-green-600">
-                      Kurir: {p.pengiriman.user?.name || "-"}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="success">
+                        <Truck className="mr-1 h-3 w-3" />
+                        Kurir: {p.pengiriman.user?.name || "-"}
+                      </Badge>
+                    </div>
                   )}
                 </div>
               </div>
@@ -425,32 +429,6 @@ export default function AdminPesananPage() {
             </div>
           </div>
         )}
-      </Modal>
-
-      {/* Status Update Confirmation Modal */}
-      <Modal
-        isOpen={statusModal.open}
-        onClose={() => setStatusModal({ open: false, pesanan: null, newStatus: "" })}
-        title="Konfirmasi Update Status"
-      >
-        <p className="text-gray-600">
-          Apakah Anda yakin ingin mengubah status pesanan menjadi{" "}
-          <strong>
-            {statusOptions.find((s) => s.value === statusModal.newStatus)?.label}
-          </strong>
-          ?
-        </p>
-        <div className="mt-6 flex justify-end gap-2">
-          <Button
-            variant="outline"
-            onClick={() => setStatusModal({ open: false, pesanan: null, newStatus: "" })}
-          >
-            Batal
-          </Button>
-          <Button onClick={handleUpdateStatus} isLoading={isPending}>
-            Konfirmasi
-          </Button>
-        </div>
       </Modal>
 
       {/* Bukti Transfer Modal */}

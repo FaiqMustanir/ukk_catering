@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { ShoppingBag, Eye, Truck } from "lucide-react";
 import { getPemesananByPelanggan } from "@/actions/pemesanan.action";
 import { formatCurrency, formatDateTime, getStatusLabel, getStatusBadgeColor } from "@/lib/utils";
+import { DeleteOrderButton } from "@/components/pelanggan/DeleteOrderButton";
 
 export default async function PesananPage() {
   const session = await auth();
@@ -77,6 +78,11 @@ export default async function PesananPage() {
                       Detail
                     </Button>
                   </Link>
+                  <DeleteOrderButton 
+                    orderId={order.id.toString()} 
+                    status={order.statusPesan} 
+                    hasBuktiTransfer={!!order.buktiTransfer}
+                  />
                 </div>
               </CardContent>
             </Card>
