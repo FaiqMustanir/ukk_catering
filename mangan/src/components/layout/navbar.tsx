@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
-import { Menu, X, ShoppingCart, User, ChevronDown } from "lucide-react";
+import { Menu, X, ShoppingCart, User, ChevronDown, Utensils } from "lucide-react";
 import { useSession, signOut } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 
@@ -28,6 +28,9 @@ export function Navbar() {
         <div className="flex h-20 items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2">
+            <div className="bg-orange-600 p-1.5 rounded-lg shadow-sm">
+                <Utensils className="h-5 w-5 text-white" />
+            </div>
             <span className="text-2xl font-bold font-serif text-stone-800 tracking-tight">Mangan.</span>
           </Link>
 

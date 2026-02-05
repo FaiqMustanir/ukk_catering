@@ -5,7 +5,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Utensils } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -67,7 +67,10 @@ export default function RegisterPage() {
 
       <Card className="w-full max-w-md border-stone-200 shadow-sm bg-white">
         <CardHeader className="text-center space-y-2">
-          <Link href="/" className="mx-auto block">
+          <Link href="/" className="mx-auto flex items-center justify-center gap-2">
+            <div className="bg-orange-600 p-2 rounded-lg">
+                <Utensils className="h-6 w-6 text-white" />
+            </div>
             <span className="text-3xl font-bold font-serif text-stone-900">Mangan.</span>
           </Link>
           <CardTitle className="text-xl font-serif text-stone-800">Buat Akun Baru</CardTitle>

@@ -7,10 +7,6 @@ import { revalidatePath } from "next/cache";
 
 export async function createPengiriman(idPesan: string, idUser: string) {
   try {
-    console.log("=== CREATE PENGIRIMAN DEBUG ===");
-    console.log("idPesan:", idPesan);
-    console.log("idUser:", idUser);
-
     // Validasi input
     if (!idPesan || !idUser) {
       return { success: false, error: "ID Pesanan dan ID Kurir harus diisi" };
@@ -20,8 +16,6 @@ export async function createPengiriman(idPesan: string, idUser: string) {
     const existing = await prisma.pengiriman.findUnique({
       where: { idPesan: BigInt(idPesan) },
     });
-
-    console.log("Existing pengiriman:", existing);
 
     if (existing) {
       return { success: false, error: "Pengiriman sudah ada untuk pesanan ini" };
@@ -36,8 +30,6 @@ export async function createPengiriman(idPesan: string, idUser: string) {
       return { success: false, error: "Pesanan tidak ditemukan" };
     }
 
-    console.log("Pesanan found:", pesanan.id.toString(), "status:", pesanan.statusPesan);
-
     // Verify user (kurir) exists
     const kurir = await prisma.user.findUnique({
       where: { id: BigInt(idUser) },
@@ -46,8 +38,6 @@ export async function createPengiriman(idPesan: string, idUser: string) {
     if (!kurir) {
       return { success: false, error: "Kurir tidak ditemukan" };
     }
-
-    console.log("Kurir found:", kurir.name);
 
     // Use transaction to ensure both operations succeed or fail together
     await prisma.$transaction(async (tx) => {
@@ -60,16 +50,12 @@ export async function createPengiriman(idPesan: string, idUser: string) {
         },
       });
 
-      console.log("Pengiriman created:", newPengiriman.id.toString());
-
       // Update pemesanan status ke SedangDikirim karena kurir sudah ditugaskan
       await tx.pemesanan.update({
         where: { id: BigInt(idPesan) },
         data: { statusPesan: "SedangDikirim" },
       });
     });
-
-    console.log("Pesanan status updated to SedangDikirim");
 
     revalidatePath("/kurir/pengiriman");
     revalidatePath("/kurir/dashboard");
@@ -80,7 +66,6 @@ export async function createPengiriman(idPesan: string, idUser: string) {
     revalidatePath("/owner/dashboard");
     return { success: true, message: "Pengiriman berhasil dibuat" };
   } catch (error) {
-    console.error("Create pengiriman error:", error);
     const errorMessage = error instanceof Error ? error.message : "Terjadi kesalahan saat membuat pengiriman";
     return { success: false, error: errorMessage };
   }
@@ -141,7 +126,6 @@ export async function getPengirimanByKurir(idUser: string) {
       })),
     };
   } catch (error) {
-    console.error("Get pengiriman error:", error);
     return { success: false, error: "Terjadi kesalahan", data: [] };
   }
 }
@@ -187,7 +171,6 @@ export async function getAllPengiriman() {
       })),
     };
   } catch (error) {
-    console.error("Get all pengiriman error:", error);
     return { success: false, error: "Terjadi kesalahan", data: [] };
   }
 }
@@ -258,7 +241,6 @@ export async function updatePengiriman(
     revalidatePath("/owner/penjualan");
     return { success: true, message: "Pengiriman berhasil diupdate" };
   } catch (error) {
-    console.error("Update pengiriman error:", error);
     return { success: false, error: "Terjadi kesalahan saat update pengiriman" };
   }
 }
@@ -309,7 +291,6 @@ export async function getPengirimanMenunggu() {
       })),
     };
   } catch (error) {
-    console.error("Get pengiriman menunggu error:", error);
     return { success: false, error: "Terjadi kesalahan", data: [] };
   }
 }

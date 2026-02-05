@@ -11,7 +11,7 @@ import {
   CreditCard,
   Truck,
   LogOut,
-  ChefHat,
+  Utensils,
   Menu,
   X,
   User,
@@ -82,8 +82,10 @@ export default function AdminLayout({
       {/* Mobile Header */}
       <div className="sticky top-0 z-40 flex h-16 items-center justify-between bg-gray-900 px-4 text-white lg:hidden">
         <Link href="/" className="flex items-center gap-2">
-          <ChefHat className="h-6 w-6 text-orange-500" />
-          <span className="font-bold">Mangan Admin</span>
+            <div className="bg-orange-600 p-1.5 rounded-lg">
+                <Utensils className="h-5 w-5 text-white" />
+            </div>
+            <span className="font-bold font-serif text-white">Mangan.</span>
         </Link>
         <button
           onClick={() => setSidebarOpen(!sidebarOpen)}
@@ -110,8 +112,10 @@ export default function AdminLayout({
       >
         <div className="flex h-16 items-center gap-2 border-b border-gray-800 px-6">
           <Link href="/" className="flex items-center gap-2">
-            <ChefHat className="h-8 w-8 text-orange-500" />
-            <span className="text-xl font-bold">Mangan</span>
+            <div className="bg-orange-600 p-1.5 rounded-lg">
+                <Utensils className="h-6 w-6 text-white" />
+            </div>
+            <span className="text-xl font-bold font-serif text-white">Mangan.</span>
           </Link>
         </div>
 

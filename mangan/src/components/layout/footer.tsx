@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Phone, Mail, MapPin, Instagram, Facebook } from "lucide-react";
+import { Phone, Mail, MapPin, Instagram, Facebook, Utensils } from "lucide-react";
 
 export function Footer() {
   return (
@@ -8,7 +8,12 @@ export function Footer() {
         <div className="grid grid-cols-1 gap-12 md:grid-cols-4">
           {/* Brand */}
           <div className="col-span-1 md:col-span-2">
-            <h2 className="text-3xl font-bold font-serif text-[#F3E5AB]">Mangan.</h2>
+            <div className="flex items-center gap-2 mb-4">
+                <div className="bg-[#F3E5AB] p-1.5 rounded-lg">
+                    <Utensils className="h-6 w-6 text-[#2D2A26]" />
+                </div>
+                <h2 className="text-3xl font-bold font-serif text-[#F3E5AB]">Mangan.</h2>
+            </div>
             <p className="mt-4 text-[#C8B6A6] leading-relaxed max-w-md">
               Layanan catering premium dengan cita rasa nusantara yang autentik. 
               Menghadirkan kehangatan dalam setiap hidangan untuk momen spesial Anda.

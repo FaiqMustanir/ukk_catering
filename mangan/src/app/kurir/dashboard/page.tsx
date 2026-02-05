@@ -122,11 +122,6 @@ export default async function KurirDashboardPage() {
                   
                   {/* Actions */}
                   <div className="flex gap-3 pt-2">
-                    <a href={`tel:${item.telepon}`} className="flex-1">
-                      <Button variant="outline" className="w-full border-stone-300 text-stone-700 hover:bg-stone-50">
-                        <Phone className="h-4 w-4 mr-2" /> Hubungi
-                      </Button>
-                    </a>
                     <Link href="/kurir/pengiriman" className="flex-1">
                        <Button className="w-full bg-green-600 hover:bg-green-700 text-white">
                          <PackageCheck className="h-4 w-4 mr-2" /> Kelola & Selesaikan

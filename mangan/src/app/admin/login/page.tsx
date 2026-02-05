@@ -5,7 +5,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ChefHat, Shield, ArrowLeft } from "lucide-react";
+import { ChefHat, Shield, ArrowLeft, Utensils } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -62,7 +62,10 @@ export default function AdminLoginPage() {
       
       <Card className="w-full max-w-md border-stone-200 shadow-sm bg-white">
         <CardHeader className="text-center">
-          <Link href="/" className="mx-auto block mb-4">
+          <Link href="/" className="mx-auto flex items-center justify-center gap-2 mb-4">
+            <div className="bg-orange-600 p-2 rounded-lg">
+                <Utensils className="h-6 w-6 text-white" />
+            </div>
             <span className="text-3xl font-bold font-serif text-stone-900">Mangan.</span>
           </Link>
           <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-stone-100">
