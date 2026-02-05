@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { ImageUpload } from "@/components/ui/image-upload";
+import { Label } from "@/components/ui/label";
 import { Modal } from "@/components/ui/modal";
 import { uploadBuktiTransfer } from "@/actions/pemesanan.action";
 import { Upload, CheckCircle, ImageIcon } from "lucide-react";
@@ -122,11 +123,13 @@ export function UploadBuktiTransfer({ pesananId, buktiTransfer, metodePembayaran
             </div>
           )}
 
-          <ImageUpload
-            value={imagePreview || ""}
-            onChange={setImagePreview}
-            label="Foto Bukti Transfer"
-          />
+          <div className="space-y-2">
+            <Label>Foto Bukti Transfer</Label>
+            <ImageUpload
+              value={imagePreview || ""}
+              onChange={setImagePreview}
+            />
+          </div>
 
           <div className="flex justify-end gap-2">
             <Button

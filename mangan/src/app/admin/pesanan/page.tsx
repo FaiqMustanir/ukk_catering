@@ -50,6 +50,7 @@ type Pemesanan = {
     user: {
       name: string;
     } | null;
+    buktiFoto?: string | null;
   } | null;
 };
 
@@ -415,6 +416,19 @@ export default function AdminPesananPage() {
                   <p className="text-sm">
                     <strong>Kurir:</strong> {detailModal.pesanan.pengiriman.user.name}
                   </p>
+                )}
+                {detailModal.pesanan.pengiriman.buktiFoto && (
+                  <div className="mt-2">
+                    <p className="text-sm font-semibold mb-1">Bukti Foto:</p>
+                    <Image 
+                      src={detailModal.pesanan.pengiriman.buktiFoto} 
+                      alt="Bukti Foto" 
+                      width={200} 
+                      height={200}
+                      className="rounded border object-cover cursor-pointer hover:opacity-90"
+                      onClick={() => setBuktiModal({ open: true, imageUrl: detailModal.pesanan!.pengiriman!.buktiFoto! })}
+                    />
+                  </div>
                 )}
               </div>
             )}

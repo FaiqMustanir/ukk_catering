@@ -8,6 +8,7 @@ import { ArrowLeft, Package, Truck, MapPin, CreditCard, Calendar, Receipt } from
 import { getPemesananById } from "@/actions/pemesanan.action";
 import { formatCurrency, formatDateTime, getStatusLabel, getStatusBadgeColor } from "@/lib/utils";
 import { UploadBuktiTransfer } from "@/components/pelanggan/upload-bukti-transfer";
+import { ViewBuktiKirim } from "@/components/pelanggan/view-bukti-kirim";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -119,6 +120,9 @@ export default async function PesananDetailPage({ params }: Props) {
                       <span className="text-gray-600">Tanggal Tiba:</span>
                       <span className="font-medium">{formatDateTime(pesanan.pengiriman.tglTiba)}</span>
                     </div>
+                  )}
+                  {pesanan.pengiriman.buktiFoto && (
+                     <ViewBuktiKirim imageUrl={pesanan.pengiriman.buktiFoto} />
                   )}
                 </div>
               </CardContent>

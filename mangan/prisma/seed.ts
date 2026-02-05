@@ -11,6 +11,8 @@ async function main() {
       await prisma.detailPemesanan.deleteMany()
       await prisma.pengiriman.deleteMany()
       await prisma.pemesanan.deleteMany()
+      await prisma.detailJenisPembayaran.deleteMany()
+      await prisma.jenisPembayaran.deleteMany()
   } catch (e) {
       console.log('Note: Some transaction tables were already empty or skipped.')
   }
@@ -154,6 +156,91 @@ async function main() {
         data: paket
     })
     console.log(`Created paket: ${paket.namaPaket}`)
+  }
+
+  // 3. Seed Jenis Pembayaran & Details
+  const pembayarans = [
+    {
+      metode: "Transfer Bank - BCA",
+      details: [
+        {
+          noRek: "1234567890",
+          tempatBayar: "Bank BCA",
+          logo: "https://upload.wikimedia.org/wikipedia/commons/5/5c/Bank_Central_Asia.svg",
+        }
+      ]
+    },
+    {
+        metode: "Transfer Bank - Mandiri",
+        details: [
+          {
+            noRek: "0987654321",
+            tempatBayar: "Bank Mandiri",
+            logo: "https://upload.wikimedia.org/wikipedia/commons/a/ad/Bank_Mandiri_logo_2016.svg",
+          }
+        ]
+    },
+    {
+        metode: "Transfer Bank - BNI",
+        details: [
+          {
+            noRek: "1122334455",
+            tempatBayar: "Bank BNI",
+            logo: "https://upload.wikimedia.org/wikipedia/id/5/55/BNI_logo.svg",
+          }
+        ]
+    },
+    {
+        metode: "Transfer Bank - BRI",
+        details: [
+            {
+                noRek: "5544332211",
+                tempatBayar: "Bank BRI",
+                logo: "https://upload.wikimedia.org/wikipedia/commons/2/2e/BRI_2020.svg",
+            }
+        ]
+    },
+    {
+        metode: "E-Wallet - GoPay",
+        details: [
+            {
+                noRek: "081234567890",
+                tempatBayar: "GoPay",
+                 logo: "https://upload.wikimedia.org/wikipedia/commons/8/86/Gopay_logo.svg",
+            }
+        ]
+    },
+    {
+      metode: "COD (Bayar di Tempat)",
+      details: [
+        {
+          noRek: "-",
+          tempatBayar: "Kurir",
+          logo: "https://cdn-icons-png.flaticon.com/512/1554/1554401.png", 
+        }
+      ]
+    }
+  ]
+
+  console.log('Seeding Pembayaran...')
+  for (const p of pembayarans) {
+      const jenis = await prisma.jenisPembayaran.create({
+          data: {
+              metodePembayaran: p.metode
+          }
+      })
+      
+      for (const d of p.details) {
+          await prisma.detailJenisPembayaran.create({
+              data: {
+                  idJenisPembayaran: jenis.id,
+                  noRek: d.noRek,
+                  tempatBayar: d.tempatBayar,
+                  logo: d.logo
+              }
+          })
+      }
+      console.log(`Created pembayaran: ${p.metode}`)
   }
 
   console.log('Seeding complete.')
